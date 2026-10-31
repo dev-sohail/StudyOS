@@ -1,6 +1,8 @@
 # StudyOS
 
-Single-file course management app — list and map/roadmap views, YouTube playlist import, flashcards with SRS, learning time tracking, transcripts, notes, and Namaz prayer times. No build step or backend required.
+Live: https://dev-sohail.github.io/StudyOS/
+
+Single-file course management app — list and map/roadmap views, YouTube playlist import, flashcards with SRS, learning time tracking, transcripts, notes, and Namaz prayer times. No build step or backend required. Everything is stored in your browser.
 
 ## Features
 
@@ -21,4 +23,4 @@ Open `index.html` in any modern browser. No installation needed.
 
 ## GitHub Pages
 
-Enable in **Settings → Pages**: source = `main` branch, folder = `/ (root)`.
+Deployed at https://dev-sohail.github.io/StudyOS/ from the `main` branch, root folder.
