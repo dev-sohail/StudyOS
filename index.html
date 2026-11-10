@@ -987,6 +987,10 @@ html:not([data-theme="light"]) .cb-icon { border-color: var(--rule-3); }
 
           <span class="topnav-divider" aria-hidden="true"></span>
 
+          <button class="topnav-item hidden" data-action="srs" data-nav="srs" type="button" id="srsNavItem" title="Review due flashcards">
+            <i class="fa-solid fa-brain"></i><span>Review</span>
+            <span class="topnav-badge" id="srsNavBadge" style="display:none;">0</span>
+          </button>
           <button class="topnav-item" data-action="flashcards" data-nav="flashcards" type="button">
             <i class="fa-solid fa-layer-group"></i><span>Flashcards</span>
           </button>
@@ -1664,13 +1668,13 @@ html:not([data-theme="light"]) .cb-icon { border-color: var(--rule-3); }
                   <button class="dj-chip" data-dj-filter="p1" type="button">P1</button>
                   <button class="dj-chip" data-dj-filter="p2" type="button">P2</button>
                 </div>
-                <div class="dj-task-list" id="djTaskList" data-bound="1">
+                <div class="dj-task-list" id="djTaskList">
                   <div class="dj-empty"><div class="dj-empty-icon">📝</div><div class="dj-empty-title">No tasks yet</div><div class="dj-empty-hint">Try: <b>!1 Finish chapter 3 #exam</b></div></div>
                 </div>
               </div>
               <div class="dj-card">
                 <div class="dj-card-head"><h2>Journey today</h2><span class="dj-pill" id="djJourneyTodayCount">0 / 0</span></div>
-                <div class="dj-task-list" id="djJourneyTodayList" data-bound="1">
+                <div class="dj-task-list" id="djJourneyTodayList">
                   <div class="dj-empty"><div class="dj-empty-icon">🧭</div><div class="dj-empty-title">No standing items</div><div class="dj-empty-hint">Add goals on the Journey tab.</div></div>
                 </div>
               </div>
@@ -1680,7 +1684,7 @@ html:not([data-theme="light"]) .cb-icon { border-color: var(--rule-3); }
             <section class="dj-panel" data-dj-panel="notes">
               <div class="dj-card">
                 <div class="dj-card-head"><h2>Notes for the day</h2><span class="dj-pill" id="djNoteMeta">0 words · 0 chars</span></div>
-                <textarea id="djNotesArea" class="dj-notes-area" spellcheck="true" placeholder="What happened today? What did you learn? What will you do differently?" data-bound="1"></textarea>
+                <textarea id="djNotesArea" class="dj-notes-area" spellcheck="true" placeholder="What happened today? What did you learn? What will you do differently?"></textarea>
                 <div class="dj-card-foot"><span id="djNoteSaved">Saved automatically</span><span id="djNoteWords">0 words</span></div>
               </div>
               <div class="dj-card">
@@ -1689,7 +1693,7 @@ html:not([data-theme="light"]) .cb-icon { border-color: var(--rule-3); }
                   <input type="text" id="djFuInput" autocomplete="off" placeholder="Something to follow up on…">
                   <button class="btn btn-primary btn-sm" id="djFuAddBtn" type="button"><i class="fa-solid fa-plus"></i>Add</button>
                 </div>
-                <div class="dj-task-list" id="djFuList" data-bound="1">
+                <div class="dj-task-list" id="djFuList">
                   <div class="dj-empty"><div class="dj-empty-icon">📌</div><div class="dj-empty-title">No follow-ups</div><div class="dj-empty-hint">Check back on things later.</div></div>
                 </div>
               </div>
@@ -1709,7 +1713,7 @@ html:not([data-theme="light"]) .cb-icon { border-color: var(--rule-3); }
                   </select>
                   <button class="btn btn-primary btn-sm" id="djJourneyAddBtn" type="button"><i class="fa-solid fa-plus"></i>Add</button>
                 </div>
-                <div id="djJourneyList" data-bound="1">
+                <div id="djJourneyList">
                   <div class="dj-empty"><div class="dj-empty-icon">🧭</div><div class="dj-empty-title">No standing items</div><div class="dj-empty-hint">Add a habit or long-term goal above.</div></div>
                 </div>
               </div>
@@ -3077,6 +3081,8 @@ html:not([data-theme="light"]) .cb-icon { border-color: var(--rule-3); }
       const COURSE_COMPLETION_PERCENT = 90;
       const UNDO_STACK_LIMIT = 5;
       const generateId = prefix => U.uid(prefix);
+      function formatDueDate(ts) { if (!ts) return ""; const d = new Date(ts); return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }); }
+      function getDueBadgeClass(ts) { if (!ts) return "ok"; const diff = ts - Date.now(); if (diff < 0) return "overdue"; if (diff < 86400000) return "soon"; return "ok"; }
       const _emptyStore = () => ({ courses: [], activeId: '' });
 
       function loadCoursesStore() {
@@ -3783,6 +3789,7 @@ function getNextIncompleteLesson() {
             const at = row.querySelector('[data-add-today]');
             if (at) at.addEventListener('click', event => {
               event.stopPropagation();
+              if (!l || !l.id) return;
               if (window.DailyJournal && typeof window.DailyJournal.addTaskFromLesson === 'function') {
                 window.DailyJournal.addTaskFromLesson(l);
               } else {
@@ -4653,30 +4660,201 @@ function createLessonOfType(type) {
     if (inp) { inp.focus(); inp.select(); inp.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
   });
 }
-function importFromYouTubePlaylist() {
-  showMessage('Playlist import is not wired up yet — paste URLs in Bulk add instead.', 'info');
-  // Or wire it properly to a playlist URL + API; left as a hook.
+/* ---------- Fix 5: addModuleToActiveCourse helper ---------- */
+function addModuleToActiveCourse(mod) {
+  if (!currentCourse) return null;
+  const m = { id: generateId('module'), name: String(mod && mod.name || ('Module ' + (currentCourse.modules.length + 1))), lessons: Array.isArray(mod && mod.lessons) ? mod.lessons.map(l => ({ id: generateId('lesson'), name: String(l.name || 'Lesson'), url: String(l.url || ''), bookmarks: [], timestampNotes: [], flashcards: [], tasks: [], quiz: [] })) : [] };
+  currentCourse.modules.push(m);
+  saveCourseData(); renderCourseManagement(); renderCourseCurriculum();
+  return m;
 }
-function fetchAllDurations() {
-  const lessons = getAllLessons().filter(l => l.url && getYouTubeId(l.url));
-  if (!lessons.length) { showMessage('No YouTube lessons with URLs.', 'error'); return; }
-  showMessage('Fetching durations requires the YT Data API key — not configured.', 'info');
+
+/* ---------- Fix 6: Undo System ---------- */
+function captureLessonScopedData(lessonIds) {
+  const ids = Array.isArray(lessonIds) ? lessonIds.filter(Boolean) : [];
+  const set = new Set(ids);
+  const pick = (key, pred) => { const map = U.read(key, {}); const out = {}; Object.keys(map || {}).forEach(k => { if (pred(k)) out[k] = map[k]; }); return out; };
+  const srs = U.read(K.SRS, {}); const srsSlice = {};
+  Object.keys(srs || {}).forEach(k => { if (set.has(k.split(':')[0])) srsSlice[k] = srs[k]; });
+  return {
+    progress: pick(K.CPROG, () => false), // per-course handled separately
+    lessonTime: pick(K.LTIME, k => set.has(k)),
+    ivq: pick(K.IVQ, k => set.has(k)),
+    meta: pick(K.LMETA, k => set.has(k)),
+    srs: srsSlice,
+  };
 }
-function fetchAllTitles() {
-  const lessons = getAllLessons().filter(l => l.url && getYouTubeId(l.url));
-  if (!lessons.length) { showMessage('No YouTube lessons with URLs.', 'error'); return; }
-  let done = 0;
-  (async () => {
-    for (const l of lessons) {
-      const title = await fetchYouTubeTitle(getYouTubeId(l.url));
-      if (title) { l.name = title; done++; }
+function restoreLessonScopedData(snapshot) {
+  if (!snapshot) return;
+  const merge = (key, slice) => { const map = U.read(key, {}); Object.assign(map, slice || {}); U.write(key, map); };
+  merge(K.LTIME, snapshot.lessonTime); merge(K.IVQ, snapshot.ivq); merge(K.LMETA, snapshot.meta); merge(K.SRS, snapshot.srs);
+}
+function captureDeletionSnapshot(label) {
+  try {
+    if (!currentCourse) return;
+    const snap = {
+      label: String(label || 'Deletion'),
+      at: Date.now(),
+      course: JSON.parse(JSON.stringify(currentCourse)),
+      courseId: currentCourse.id,
+      progress: JSON.parse(JSON.stringify(getCourseProgress())),
+    };
+    courseUndoStack.push(snap);
+    if (courseUndoStack.length > UNDO_STACK_LIMIT) courseUndoStack.shift();
+    showUndoToast('Saved: ' + snap.label);
+  } catch (e) { console.warn('captureDeletionSnapshot', e); }
+}
+function showUndoToast(message) {
+  const host = document.getElementById('toastHost'); if (!host) return;
+  const t = document.createElement('div');
+  t.className = 'toast-item toast-info show';
+  t.innerHTML = '<span class="toast-icon"><i class="fa-solid fa-rotate-left"></i></span><span class="toast-msg">' + U.esc(message) + '</span><button type="button" class="toast-close" data-undo style="width:auto;padding:2px 8px;border:1px solid var(--rule-2);border-radius:6px;margin-right:4px;">Undo</button><button type="button" class="toast-close" data-close aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>';
+  host.appendChild(t);
+  const close = () => { t.classList.remove('show'); t.classList.add('hide'); setTimeout(() => t.remove(), 250); };
+  t.querySelector('[data-close]').addEventListener('click', close);
+  t.querySelector('[data-undo]').addEventListener('click', () => { close(); undoLastDelete(); });
+  setTimeout(close, 8000);
+}
+function undoLastDelete() {
+  const snap = courseUndoStack.pop();
+  if (!snap) { showMessage('Nothing to undo.', 'error'); return; }
+  try {
+    if (snap.courseId !== (currentCourse && currentCourse.id)) {
+      const stored = addCourseToStore(snap.course);
+      setActiveCourseId(stored.id);
+      currentCourse = stored;
+    } else {
+      currentCourse = normalizeCourse(snap.course);
+      const store = loadCoursesStore();
+      const i = store.courses.findIndex(c => c.id === currentCourse.id);
+      if (i >= 0) store.courses[i] = currentCourse; else { store.courses.push(currentCourse); store.activeId = currentCourse.id; }
+      saveCoursesStore(store);
     }
-    saveCourseData(); renderCourseManagement(); renderCourseCurriculum();
-    showMessage('Updated ' + done + ' lesson titles.');
-  })();
+    saveCourseProgress(snap.progress || {});
+    bumpStructRev(); bumpProgRev();
+    updateCourseSwitcher(); renderCourseManagement(); renderCourseCurriculum(); updateCourseProgressUI();
+    showMessage('↩ Restored: ' + snap.label);
+  } catch (e) { console.error(e); showMessage('Undo failed.', 'error'); }
 }
-function captureDeletionSnapshot(name) {
-  showMessage('Checkpoint "' + name + '" saved (not yet persisted).', 'info');
+
+/* ---------- Fix 2/3/4: Piped API helpers ---------- */
+const PIPED_BASE = 'https://pipedapi.kavin.rocks';
+function openProgressModal(title, total) {
+  const ov = document.createElement('div');
+  ov.className = 'fixed inset-0 z-[900] overlay items-center justify-center p-4';
+  ov.style.display = 'flex';
+  ov.innerHTML = '<div class="modal w-full max-w-md"><div class="modal-head"><h3 class="text-base font-bold">' + U.esc(title) + '</h3></div><div class="p-5"><div class="text-sm mb-2" data-msg>Starting…</div><div class="w-full h-2.5 rounded-full overflow-hidden" style="background:var(--surface-3);"><div data-bar class="h-full" style="width:0%;background:var(--accent);transition:width .2s;"></div></div><div class="text-xs mt-2 tabular-nums" data-count style="color:var(--muted);font-family:var(--f-mono);">0 / ' + total + '</div></div><div class="modal-foot"><button type="button" data-cancel class="btn btn-danger btn-sm">Cancel</button></div></div>';
+  document.body.appendChild(ov);
+  let cancelled = false;
+  const api = {
+    cancelled: () => cancelled,
+    update(done, msg) {
+      const bar = ov.querySelector('[data-bar]'); const m = ov.querySelector('[data-msg]'); const c = ov.querySelector('[data-count]');
+      const pct = total ? Math.round((done / total) * 100) : 0;
+      if (bar) bar.style.width = pct + '%'; if (m) m.textContent = msg || ''; if (c) c.textContent = done + ' / ' + total;
+    },
+    close() { ov.remove(); }
+  };
+  ov.querySelector('[data-cancel]').addEventListener('click', () => { cancelled = true; api.close(); });
+  return api;
+}
+async function pipedFetch(path) {
+  const r = await fetch(PIPED_BASE + path, { headers: { 'Accept': 'application/json' } });
+  if (!r.ok) throw new Error('Piped HTTP ' + r.status);
+  return r.json();
+}
+
+async function fetchAllDurations() {
+  const lessons = getAllLessons().filter(l => getLessonType(l) === 'video' && l.url && getYouTubeId(l.url));
+  if (!lessons.length) { showMessage('No YouTube lessons found.', 'error'); return; }
+  const modal = openProgressModal('Fetching durations', lessons.length);
+  let done = 0, updated = 0;
+  const concurrency = 4;
+  const queue = lessons.slice();
+  async function worker() {
+    while (queue.length && !modal.cancelled()) {
+      const l = queue.shift(); if (!l) break;
+      const vid = getYouTubeId(l.url);
+      try {
+        const data = await pipedFetch('/streams/' + encodeURIComponent(vid));
+        const sec = Number(data && data.duration);
+        if (Number.isFinite(sec) && sec > 0) {
+          // store duration hint in lesson meta via K.LMETA-like? reuse storage by caching in url-less meta not available;
+          // simplest: store in lesson._durationSec (non-schema but harmless) and in LTIME? No, LTIME is time spent.
+          // We'll store in a meta map keyed by lesson id.
+          const meta = U.read(K.LMETA, {}); meta[l.id] = Object.assign({}, meta[l.id], { durationSec: sec }); U.write(K.LMETA, meta);
+          updated++;
+        }
+      } catch (_) {}
+      done++; modal.update(done, 'Processed ' + (l.name || vid));
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(concurrency, queue.length) }, () => worker()));
+  if (!modal.cancelled()) modal.close();
+  saveCourseData(); renderCourseManagement(); renderCourseCurriculum();
+  showMessage(modal.cancelled() ? ('Cancelled — updated ' + updated + ' duration(s).') : ('Updated ' + updated + ' duration(s).'));
+}
+
+async function fetchAllTitles() {
+  const lessons = getAllLessons().filter(l => getLessonType(l) === 'video' && l.url && getYouTubeId(l.url));
+  if (!lessons.length) { showMessage('No YouTube lessons found.', 'error'); return; }
+  const modal = openProgressModal('Fetching titles', lessons.length);
+  let done = 0, updated = 0;
+  const concurrency = 4;
+  const queue = lessons.slice();
+  async function worker() {
+    while (queue.length && !modal.cancelled()) {
+      const l = queue.shift(); if (!l) break;
+      const vid = getYouTubeId(l.url);
+      try {
+        const data = await pipedFetch('/streams/' + encodeURIComponent(vid));
+        const title = data && data.title;
+        if (title && typeof title === 'string') { l.name = title.trim().slice(0, 200); updated++; }
+      } catch (_) {}
+      done++; modal.update(done, 'Processed ' + (l.name || vid));
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(concurrency, queue.length) }, () => worker()));
+  if (!modal.cancelled()) modal.close();
+  saveCourseData(); renderCourseManagement(); renderCourseCurriculum();
+  showMessage(modal.cancelled() ? ('Cancelled — updated ' + updated + ' title(s).') : ('Updated ' + updated + ' title(s).'));
+}
+
+async function importFromYouTubePlaylist() {
+  const url = prompt('YouTube playlist URL or ID:'); if (url === null) return;
+  const raw = String(url || '').trim(); if (!raw) return;
+  let playlistId = raw;
+  try {
+    const u = new URL(raw);
+    playlistId = u.searchParams.get('list') || raw;
+  } catch (_) {}
+  playlistId = playlistId.replace(/^.*list=/, '').split(/[&#]/)[0];
+  if (!playlistId) { showMessage('Could not detect playlist ID.', 'error'); return; }
+  const modal = openProgressModal('Importing playlist', 1);
+  try {
+    let nextpage = null, videos = [];
+    do {
+      if (modal.cancelled()) break;
+      const path = '/playlists/' + encodeURIComponent(playlistId) + (nextpage ? '?nextpage=' + encodeURIComponent(nextpage) : '');
+      const data = await pipedFetch(path);
+      const rel = Array.isArray(data && data.relatedStreams) ? data.relatedStreams : [];
+      videos = videos.concat(rel);
+      nextpage = data && data.nextpage ? data.nextpage : null;
+      modal.update(videos.length, 'Fetched ' + videos.length + ' items…');
+    } while (nextpage);
+    if (modal.cancelled()) { modal.close(); showMessage('Import cancelled.'); return; }
+    modal.close();
+    if (!videos.length) { showMessage('No videos found in playlist.', 'error'); return; }
+    const mod = { name: 'Imported playlist', lessons: videos.map(v => {
+      const vid = (v.url || '').replace('/watch?v=', '').split('&')[0];
+      return { name: v.title || 'Lesson', url: vid ? ('https://www.youtube.com/watch?v=' + vid) : '' };
+    }).filter(l => l.url) };
+    addModuleToActiveCourse(mod);
+    showMessage('Imported ' + mod.lessons.length + ' lesson(s).');
+  } catch (e) {
+    try { modal.close(); } catch (_) {}
+    showMessage('Playlist import failed: ' + (e && e.message || e), 'error');
+  }
 }
 
       /* ---------- Anti-cheat ---------- */
@@ -4702,7 +4880,11 @@ function captureDeletionSnapshot(name) {
         { label: 'Keyboard shortcuts', icon: '⌨️', run: () => { closeCmdk(); openShortcuts(); } },
         { label: 'Manage course', icon: '⚙️', run: () => { closeCmdk(); toggleCourseManagement(); } },
         { label: 'Open SRS review', icon: '🧠', run: () => { closeCmdk(); openSRS(); } },
+        { label: 'Open flashcards', icon: '🗂️', run: () => { closeCmdk(); openFlashcards(); } },
         { label: 'Weekly report', icon: '📈', run: () => { closeCmdk(); showWeeklyReport(); } },
+        { label: 'Forecast', icon: '🔮', run: () => { closeCmdk(); showForecast(); } },
+        { label: 'Focus mode', icon: '🎯', run: () => { closeCmdk(); toggleFocusMode(); } },
+        { label: 'Pomodoro', icon: '⏱️', run: () => { closeCmdk(); togglePomodoro(); } },
       ];
       function openCmdk() { const ov = $('cmdkOverlay'); if (!ov) return; ov.classList.remove('hidden'); ov.classList.add('flex'); const inp = $('cmdkInput'); if (inp) { inp.value = ''; setTimeout(() => inp.focus(), 30); } buildCmdk(''); }
       function closeCmdk() { const ov = $('cmdkOverlay'); if (ov) { ov.classList.add('hidden'); ov.classList.remove('flex'); } }
@@ -4889,6 +5071,186 @@ function captureDeletionSnapshot(name) {
       }
       function renderPomodoro() { const m = Math.floor(pomodoro.remaining / 60), s = pomodoro.remaining % 60; const t = $('pomoTime'); if (t) t.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0'); const p = $('pomoPhase'); if (p) p.textContent = pomodoro.phase === 'work' ? 'Focus' : 'Break'; }
 
+
+
+      /* ---------- Fix 7: Notification Bus ---------- */
+      const NotifPriority = { LOW: 0, NORMAL: 1, HIGH: 2 };
+      function emitNotif(message, priority) {
+        try {
+          priority = priority == null ? NotifPriority.NORMAL : priority;
+          if (priority >= NotifPriority.HIGH) showMessage(message, 'error');
+          else showMessage(message, 'info');
+          // desktop notification if permitted and prefs allow
+          const prefs = getNotifPrefs();
+          if (prefs.enabled && 'Notification' in window && Notification.permission === 'granted' && priority >= NotifPriority.NORMAL) {
+            try { new Notification('StudyOS', { body: String(message), silent: priority < NotifPriority.HIGH }); } catch (_) {}
+          }
+        } catch (e) { console.warn('emitNotif', e); }
+      }
+      function checkStreakNotifs() {
+        try {
+          const d = getStreakData();
+          const today = U.dayKey();
+          const todaySec = (d.dailySeconds && d.dailySeconds[today]) || 0;
+          const goal = getDailyGoalSeconds();
+          const cur = getCurrentStreak(d);
+          const key = 'studyos_notif_last_' + today;
+          const last = U.read(key, {});
+          if (todaySec === 0 && cur > 0 && !last.streakRisk) {
+            const hour = new Date().getHours();
+            if (hour >= 18) { emitNotif("Don't break your " + cur + "-day streak — study a bit today.", NotifPriority.NORMAL); last.streakRisk = true; U.write(key, last); }
+          }
+          if (todaySec >= goal && !last.goalMet) { emitNotif("Today's goal complete! 🔥", NotifPriority.LOW); last.goalMet = true; U.write(key, last); }
+        } catch (_) {}
+      }
+      function checkLessonNotifs() {
+        try {
+          if (!currentCourse) return;
+          const prog = getCourseProgress();
+          const now = Date.now();
+          const key = 'studyos_notif_lessons_' + U.dayKey();
+          const seen = U.read(key, {});
+          getAllLessons().forEach(l => {
+            if (!l.dueAt || (prog[l.id] && prog[l.id].completed)) return;
+            if (l.dueAt < now && !seen['over-' + l.id]) { emitNotif('Overdue: ' + l.name, NotifPriority.HIGH); seen['over-' + l.id] = true; }
+            else if (l.dueAt - now < 86400000 && l.dueAt >= now && !seen['soon-' + l.id]) { emitNotif('Due soon: ' + l.name, NotifPriority.NORMAL); seen['soon-' + l.id] = true; }
+          });
+          U.write(key, seen);
+        } catch (_) {}
+      }
+      function startNotifLoop() {
+        try { checkStreakNotifs(); checkLessonNotifs(); } catch (_) {}
+        setInterval(() => { try { checkStreakNotifs(); checkLessonNotifs(); } catch (_) {} }, 60000);
+      }
+
+      /* ---------- Fix 1: Library collapse/expand ---------- */
+      function toggleLibrarySection() {
+        try {
+          const sec = document.getElementById('librarySection');
+          const btn = document.getElementById('libraryToggleBtn');
+          if (!sec) return;
+          const hidden = sec.classList.toggle('lib-collapsed');
+          sec.querySelectorAll(':scope > *').forEach((el, i) => { if (el.id === 'libraryToggleBtn') return; });
+          // hide content children except keep header? simpler: toggle display of all but first header row
+          const content = sec.querySelectorAll('#continueWatchingHero, #recentVideosToolbar, #recentVideos');
+          content.forEach(el => { if (hidden) el.classList.add('hidden'); else el.classList.remove('hidden'); });
+          if (btn) btn.textContent = hidden ? 'Show Recent Video' : 'Hide Recent Video';
+          try { localStorage.setItem('studyos_library_hidden', hidden ? '1' : '0'); } catch (_) {}
+        } catch (e) { console.error('toggleLibrarySection', e); }
+      }
+      function initLibrarySectionState() {
+        try {
+          const hidden = localStorage.getItem('studyos_library_hidden') === '1';
+          if (!hidden) return;
+          const content = document.querySelectorAll('#continueWatchingHero, #recentVideosToolbar, #recentVideos');
+          content.forEach(el => el.classList.add('hidden'));
+          const btn = document.getElementById('libraryToggleBtn');
+          if (btn) btn.textContent = 'Show Recent Video';
+        } catch (_) {}
+      }
+
+
+      /* ---------- Fix 11: Course Builder Drag & Drop ---------- */
+      function initModulesDragDrop() {
+        const list = document.getElementById('modulesList');
+        if (!list || list._dndBound) return;
+        list._dndBound = true;
+        let dragModId = null, dragLes = null; // {mid, lid}
+        list.addEventListener('dragstart', e => {
+          const modEl = e.target.closest('[data-type="module"]');
+          const lesEl = e.target.closest('[data-type="lesson"]');
+          if (lesEl) {
+            dragLes = { mid: lesEl.dataset.moduleId, lid: lesEl.dataset.lessonId };
+            dragModId = null;
+            e.dataTransfer.effectAllowed = 'move';
+            try { e.dataTransfer.setData('text/plain', dragLes.lid); } catch (_) {}
+            lesEl.style.opacity = '0.5';
+          } else if (modEl) {
+            dragModId = modEl.dataset.moduleId;
+            dragLes = null;
+            e.dataTransfer.effectAllowed = 'move';
+            try { e.dataTransfer.setData('text/plain', dragModId); } catch (_) {}
+            modEl.style.opacity = '0.6';
+          }
+        });
+        list.addEventListener('dragend', e => {
+          list.querySelectorAll('[data-type="module"], [data-type="lesson"]').forEach(el => { el.style.opacity = ''; el.style.outline = ''; });
+          dragModId = null; dragLes = null;
+        });
+        list.addEventListener('dragover', e => {
+          if (dragModId) {
+            const over = e.target.closest('[data-type="module"]');
+            if (!over || over.dataset.moduleId === dragModId) return;
+            e.preventDefault();
+            const rect = over.getBoundingClientRect();
+            const before = e.clientY < rect.top + rect.height / 2;
+            list.querySelectorAll('[data-type="module"]').forEach(el => el.style.outline = '');
+            over.style.outline = before ? '2px solid var(--accent)' : '2px solid var(--accent)';
+            over.dataset.dropBefore = before ? '1' : '0';
+          } else if (dragLes) {
+            const overLes = e.target.closest('[data-type="lesson"]');
+            const overList = e.target.closest('[data-lessons-list]');
+            if (overLes && overLes.dataset.lessonId === dragLes.lid) return;
+            e.preventDefault();
+            list.querySelectorAll('[data-type="lesson"]').forEach(el => el.style.outline = '');
+            if (overLes) {
+              const rect = overLes.getBoundingClientRect();
+              const before = e.clientY < rect.top + rect.height / 2;
+              overLes.style.outline = before ? '2px solid var(--accent)' : '2px solid var(--accent)';
+              overLes.dataset.dropBefore = before ? '1' : '0';
+            } else if (overList) {
+              overList.style.outline = '2px dashed var(--accent)';
+            }
+          }
+        });
+        list.addEventListener('drop', e => {
+          e.preventDefault();
+          if (dragModId) {
+            const over = e.target.closest('[data-type="module"]');
+            if (!over || over.dataset.moduleId === dragModId) return;
+            captureCourseUI();
+            const from = currentCourse.modules.findIndex(m => m.id === dragModId);
+            let to = currentCourse.modules.findIndex(m => m.id === over.dataset.moduleId);
+            if (from < 0 || to < 0) return;
+            const before = over.dataset.dropBefore === '1';
+            const [m] = currentCourse.modules.splice(from, 1);
+            if (from < to) to--;
+            if (!before) to++;
+            currentCourse.modules.splice(Math.max(0, Math.min(to, currentCourse.modules.length)), 0, m);
+            saveCourseData(); renderCourseManagement(); renderCourseCurriculum();
+          } else if (dragLes) {
+            const overLes = e.target.closest('[data-type="lesson"]');
+            const overList = e.target.closest('[data-lessons-list]');
+            captureCourseUI();
+            const fromM = currentCourse.modules.find(m => m.id === dragLes.mid);
+            if (!fromM) return;
+            const li = fromM.lessons.findIndex(l => l.id === dragLes.lid);
+            if (li < 0) return;
+            const [lesson] = fromM.lessons.splice(li, 1);
+            if (overLes) {
+              const toM = currentCourse.modules.find(m => m.id === overLes.dataset.moduleId);
+              if (!toM) { fromM.lessons.splice(li, 0, lesson); return; }
+              let ti = toM.lessons.findIndex(l => l.id === overLes.dataset.lessonId);
+              if (ti < 0) ti = toM.lessons.length;
+              const before = overLes.dataset.dropBefore === '1';
+              if (!before) ti++;
+              if (toM === fromM && ti > li) ti--;
+              toM.lessons.splice(Math.max(0, Math.min(ti, toM.lessons.length)), 0, lesson);
+            } else if (overList) {
+              // append to module containing list
+              const modEl = overList.closest('[data-type="module"]');
+              const toM = modEl ? currentCourse.modules.find(m => m.id === modEl.dataset.moduleId) : null;
+              (toM || fromM).lessons.push(lesson);
+            } else {
+              fromM.lessons.splice(li, 0, lesson);
+            }
+            saveCourseData(); renderCourseManagement(); renderCourseCurriculum();
+          }
+          list.querySelectorAll('[data-type="module"], [data-type="lesson"], [data-lessons-list]').forEach(el => { el.style.opacity = ''; el.style.outline = ''; });
+          dragModId = null; dragLes = null;
+        });
+      }
+
       /* ---------- Top nav + boot ---------- */
       function activateNavItem(item) {
         document.querySelectorAll('#topbar .topnav-item').forEach(n => n.classList.toggle('is-active', n === item));
@@ -4897,6 +5259,7 @@ function captureDeletionSnapshot(name) {
         const action = item && item.dataset.action;
         if (action === 'journal') { window.DailyJournal && window.DailyJournal.open(); return; }
         if (action === 'flashcards') { openFlashcards(); return; }
+        if (action === 'srs') { openSRS(); return; }
         if (action === 'focus') { toggleFocusMode(); return; }
         if (action === 'search') { openCmdk(); return; }
       }
@@ -4909,27 +5272,31 @@ function captureDeletionSnapshot(name) {
         mk('Integrity', '<i class="fa-solid fa-shield-halved"></i>', showACReport);
       }
       function boot() {
-        loadCourseData();
-        initRecentVideosUI();
-        initStreakUIEvents();
-        updateStreakUI(); updateCourseSwitcher();
-        bindCourseBuilderEvents();
-        renderCourseManagement(); renderCourseCurriculum();
-        renderRecentVideos(); updateStorageDebug();
-        try { checkShareLink(); } catch (_) {}
-        try { injectToolbarButtons(); } catch (_) {}
+        const step = (name, fn) => { try { fn(); } catch (e) { console.error('[boot] ' + name + ' failed:', e); } };
+        step('loadCourseData', loadCourseData);
+        step('initRecentVideosUI', initRecentVideosUI);
+        step('initStreakUIEvents', initStreakUIEvents);
+        step('updateStreakUI', updateStreakUI);
+        step('updateCourseSwitcher', updateCourseSwitcher);
+        step('bindCourseBuilderEvents', bindCourseBuilderEvents);
+        step('initModulesDragDrop', initModulesDragDrop);
+        step('renderCourseManagement', renderCourseManagement);
+        step('renderCourseCurriculum', renderCourseCurriculum);
+        step('renderRecentVideos', renderRecentVideos);
+        step('updateStorageDebug', updateStorageDebug);
+        step('checkShareLink', () => { try { checkShareLink(); } catch (_) {} });
+        step('injectToolbarButtons', () => { try { injectToolbarButtons(); } catch (_) {} });
+        step('initLibrarySectionState', initLibrarySectionState);
+        step('updateSRSBadge', updateSRSBadge);
+        step('startNotifLoop', startNotifLoop);
         lastKnownStreakDate = U.dayKey();
-        const storage = getStorage();
-        if (storage._lastVideo && storage[storage._lastVideo]) { const last = storage[storage._lastVideo]; if (videoUrlInput) videoUrlInput.value = last.url || ''; }
-        const ni = $('courseNameInput');
-        if (ni) { ni.addEventListener('change', () => { saveCourseDataFromUI({ render: false }); renderCourseCurriculum(); }); ni.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ni.blur(); } }); }
-        const si = $('courseSearchInput'); if (si) si.addEventListener('input', () => { courseSearchQuery = si.value; renderCourseCurriculum(); });
-        const eb = $('expandAllBtn'); if (eb) eb.addEventListener('click', expandAllModules);
-        const cb = $('collapseAllBtn'); if (cb) cb.addEventListener('click', collapseAllModules);
-        const bs = $('backupSection'); if (bs) bs.addEventListener('toggle', () => { if (bs.open) updateStorageDebug(); else updateStorageKeyCountOnly(); });
-        updateStorageKeyCountOnly();
-        const bam = $('bulkAddModal'); if (bam) bam.addEventListener('click', e => { if (e.target === bam) closeBulkAddModal(); });
-        document.querySelectorAll('#topbar .topnav-item').forEach(item => item.addEventListener('click', () => activateNavItem(item)));
+        step('restoreLastVideo', () => { const storage = getStorage(); if (storage._lastVideo && storage[storage._lastVideo]) { const last = storage[storage._lastVideo]; if (videoUrlInput) videoUrlInput.value = last.url || ''; } });
+        step('bindCourseName', () => { const ni = $('courseNameInput'); if (ni) { ni.addEventListener('change', () => { saveCourseDataFromUI({ render: false }); renderCourseCurriculum(); }); ni.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ni.blur(); } }); } });
+        step('bindCourseSearch', () => { const si = $('courseSearchInput'); if (si) si.addEventListener('input', () => { courseSearchQuery = si.value; renderCourseCurriculum(); }); });
+        step('bindExpandCollapse', () => { const eb = $('expandAllBtn'); if (eb) eb.addEventListener('click', expandAllModules); const cb = $('collapseAllBtn'); if (cb) cb.addEventListener('click', collapseAllModules); });
+        step('bindBackup', () => { const bs = $('backupSection'); if (bs) bs.addEventListener('toggle', () => { if (bs.open) updateStorageDebug(); else updateStorageKeyCountOnly(); }); updateStorageKeyCountOnly(); });
+        step('bindBulkModal', () => { const bam = $('bulkAddModal'); if (bam) bam.addEventListener('click', e => { if (e.target === bam) closeBulkAddModal(); }); });
+        step('bindTopNav', () => { document.querySelectorAll('#topbar .topnav-item').forEach(item => item.addEventListener('click', () => activateNavItem(item))); });
         // Keyboard shortcuts
         document.addEventListener('keydown', event => {
           const tag = (event.target.tagName || '').toLowerCase();
@@ -4991,7 +5358,7 @@ function captureDeletionSnapshot(name) {
         addCourseToStore, removeCourseFromStore, switchCourse, createNewCoursePrompt, deleteCurrentCourse, renameCurrentCourse,
         resetCurrentCourse, duplicateCourse, updateCourseSwitcher, onCourseSwitcherChange, getCurrentCourse: () => currentCourse,
         getAllLessons, getCourseProgress, saveCourseProgress, removeCourseProgressForLessons, getCourseVideoId, getLessonById,
-        getLessonForCurrentVideo,openTypeChooser, closeTypeChooser, createLessonOfType, importFromYouTubePlaylist, fetchAllDurations, fetchAllTitles, captureDeletionSnapshot, getLessonSavedDuration, getModuleProgress, getCourseStats, getNextIncompleteLesson,
+        getLessonForCurrentVideo,openTypeChooser, closeTypeChooser, createLessonOfType, importFromYouTubePlaylist, fetchAllDurations, fetchAllTitles, captureDeletionSnapshot, getLessonSavedDuration, getModuleProgress, getCourseStats, getNextIncompleteLesson, purgeLessonScopedData,
         validateCourseLessons, getCollapsedState, setCollapsedState, setModuleCollapsed, getCoursePrefs, setCoursePrefs,
         getAutoCollapsePreference, setAutoCollapsePreference, toggleCourseManagement, cmSetView,
         renderCourseManagement, renderCourseManageStats, renderCourseCurriculum, updateCourseProgressUI, updateResumeButton,
@@ -5022,6 +5389,10 @@ function captureDeletionSnapshot(name) {
         exportCourseOnly, importCourseOnly,
         toggleBulkSelectionMode, bulkMarkComplete, bulkSetDue, bulkClearDue, bulkDeleteLessons, toggleBulkLesson,
         setGroupPreference,
+        toggleLibrarySection, initLibrarySectionState,
+        addModuleToActiveCourse, captureLessonScopedData, restoreLessonScopedData, showUndoToast, undoLastDelete,
+        emitNotif, NotifPriority, checkStreakNotifs, checkLessonNotifs, startNotifLoop,
+        initModulesDragDrop,
         PS, VIDEO_PLACEHOLDER_SVG, _U: U,
         formatDueDate: ts => { if (!ts) return ''; const d = new Date(ts); return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); },
         getDueBadgeClass: ts => { if (!ts) return 'ok'; const diff = ts - Date.now(); if (diff < 0) return 'overdue'; if (diff < 86400000) return 'soon'; return 'ok'; },
@@ -5038,7 +5409,7 @@ function captureDeletionSnapshot(name) {
       });
       window.ST3 = window.ST3 || {};
       Object.assign(window.ST3, {
-        openSRSHeatmap: () => { const st = computeSRSStats(); toast('Cards: ' + st.due + ' due · ' + st.total + ' total', 'info'); },
+        openSRSHeatmap: () => { const st = computeSRSStats(); (window.toast || toast)('Cards: ' + st.due + ' due · ' + st.total + ' total', 'info'); },
         closeSRS: () => { const ov = $('srsReviewOverlay'); if (ov) { ov.classList.add('hidden'); ov.classList.remove('flex'); } },
         closeCalendar: () => { const ov = $('globalCalendarOverlay'); if (ov) { ov.classList.add('hidden'); ov.classList.remove('flex'); } },
         closeIVQEditor: () => { const ov = $('ivqEditorOverlay'); if (ov) { ov.classList.add('hidden'); ov.classList.remove('flex'); } },
@@ -5075,7 +5446,11 @@ function captureDeletionSnapshot(name) {
       const shiftKey = (k, n) => { const d = parseKey(k); d.setDate(d.getDate() + n); return dayKey(d); };
       const fmtShortDate = k => { if (!k) return ''; const d = parseKey(k); const now = new Date(); if (d.getFullYear() === now.getFullYear()) return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: '2-digit' }); };
       const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
-      const toast = (msg, type) => { if (window.toast) window.toast(msg, type || 'success'); };
+      // Local toast fallback since main toast might not be ready yet
+      function djToast(msg, type) {
+        if (window.toast) window.toast(msg, type || 'success');
+        else console[type === 'error' ? 'error' : 'log']('[DailyJournal] ' + msg);
+      }
 
       let state = load();
 
@@ -5090,7 +5465,7 @@ function captureDeletionSnapshot(name) {
       }
       function normTask(t) { if (!t || typeof t !== 'object') return null; const text = String(t.text || '').trim(); if (!text) return null; return { id: String(t.id || uid('task')), text: text.slice(0, 500), done: t.done === true, priority: clamp(Number(t.priority) || 3, 1, 4), tags: Array.isArray(t.tags) ? t.tags.map(String).slice(0, 6) : [], createdAt: Number(t.createdAt) || Date.now(), doneAt: Number(t.doneAt) || null, movedFrom: typeof t.movedFrom === 'string' ? t.movedFrom : null, carriedTo: typeof t.carriedTo === 'string' ? t.carriedTo : null }; }
       function normFu(f) { if (!f || typeof f !== 'object') return null; const text = String(f.text || '').trim(); if (!text) return null; return { id: String(f.id || uid('fu')), text: text.slice(0, 500), done: f.done === true, createdAt: Number(f.createdAt) || Date.now() }; }
-      const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); return true; } catch (_) { toast('Could not save — storage full.', 'error'); return false; } };
+      const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); return true; } catch (_) { djToast('Could not save — storage full.', 'error'); return false; } };
       function ensureDay(key) { if (!state.days[key]) state.days[key] = { tasks: [], followUps: [], journeyDone: {}, notes: '', createdAt: Date.now() }; const d = state.days[key]; if (!Array.isArray(d.tasks)) d.tasks = []; if (!Array.isArray(d.followUps)) d.followUps = []; if (!d.journeyDone || typeof d.journeyDone !== 'object') d.journeyDone = {}; if (typeof d.notes !== 'string') d.notes = ''; return d; }
       const peekDay = key => state.days[key] || { tasks: [], followUps: [], journeyDone: {}, notes: '' };
 
@@ -5144,7 +5519,7 @@ function captureDeletionSnapshot(name) {
         if (!open.length) { banner.style.display = 'none'; banner.innerHTML = ''; return; }
         banner.style.display = 'block';
         banner.innerHTML = '<div class="dj-card-head" style="background:var(--warn-soft);border-color:var(--warn-line);"><span style="color:var(--warn);font-weight:700;">↪ ' + open.length + ' open item' + (open.length === 1 ? '' : 's') + ' from previous days</span><div class="flex gap-2"><button type="button" data-carry-all class="dj-chip">Move all to today</button></div></div>';
-        banner.querySelector('[data-carry-all]')?.addEventListener('click', () => { if (!confirm('Move ' + open.length + ' open item(s) into today?')) return; open.forEach(o => carryTaskToToday(o.task, o.key)); save(); renderAll(); toast('Moved ' + open.length + ' item(s)'); });
+        banner.querySelector('[data-carry-all]')?.addEventListener('click', () => { if (!confirm('Move ' + open.length + ' open item(s) into today?')) return; open.forEach(o => carryTaskToToday(o.task, o.key)); save(); renderAll(); djToast('Moved ' + open.length + ' item(s)'); });
       }
 
       function renderJourneyToday(key) {
@@ -5211,7 +5586,7 @@ function captureDeletionSnapshot(name) {
           else if (btn.dataset.act === 'fdel') { if (!confirm('Delete?')) return; day.followUps = day.followUps.filter(f => f.id !== item.id); save(); renderFollowUps(); renderSidebar(); renderAudit(); renderMiniCal(); }
         });
       }
-      function addFollowUp() { const inp = dj('FuInput'); if (!inp) return; const raw = inp.value.trim(); if (!raw) return; const day = ensureDay(state.selectedDate); day.followUps.push({ id: uid('fu'), text: raw.slice(0, 500), done: false, createdAt: Date.now() }); inp.value = ''; save(); renderFollowUps(); renderSidebar(); renderAudit(); renderMiniCal(); toast('Follow-up added'); }
+      function addFollowUp() { const inp = dj('FuInput'); if (!inp) return; const raw = inp.value.trim(); if (!raw) return; const day = ensureDay(state.selectedDate); day.followUps.push({ id: uid('fu'), text: raw.slice(0, 500), done: false, createdAt: Date.now() }); inp.value = ''; save(); renderFollowUps(); renderSidebar(); renderAudit(); renderMiniCal(); djToast('Follow-up added'); }
 
       function renderJourney() {
         const active = state.journey.filter(j => !j.archived), archived = state.journey.filter(j => j.archived);
@@ -5235,7 +5610,7 @@ function captureDeletionSnapshot(name) {
           else if (act === 'jup' || act === 'jdown') { const active = state.journey.filter(j => !j.archived); const i = active.findIndex(j => j.id === item.id); const n = act === 'jup' ? i - 1 : i + 1; if (i < 0 || n < 0 || n >= active.length) return; const a = active[i], b = active[n]; const ai = state.journey.indexOf(a), bi = state.journey.indexOf(b); state.journey[ai] = b; state.journey[bi] = a; save(); renderJourney(); renderJourneyToday(state.selectedDate); }
         });
       }
-      function addJourneyItem() { const inp = dj('JourneyInput'), sc = dj('JourneyScope'); if (!inp || !sc) return; const parsed = parseQuick(inp.value); if (!parsed.text) { toast('Type a name', 'error'); return; } state.journey.push({ id: uid('journey'), text: parsed.text.slice(0, 500), priority: parsed.priority, scope: SCOPES[sc.value] ? sc.value : 'daily', done: false, archived: false, createdAt: Date.now() }); inp.value = ''; save(); renderJourney(); renderJourneyToday(state.selectedDate); renderAudit(); renderSidebar(); toast('Added'); }
+      function addJourneyItem() { const inp = dj('JourneyInput'), sc = dj('JourneyScope'); if (!inp || !sc) return; const parsed = parseQuick(inp.value); if (!parsed.text) { djToast('Type a name', 'error'); return; } state.journey.push({ id: uid('journey'), text: parsed.text.slice(0, 500), priority: parsed.priority, scope: SCOPES[sc.value] ? sc.value : 'daily', done: false, archived: false, createdAt: Date.now() }); inp.value = ''; save(); renderJourney(); renderJourneyToday(state.selectedDate); renderAudit(); renderSidebar(); djToast('Added'); }
 
       function renderAudit() {
         const key = state.selectedDate, day = peekDay(key);
@@ -5257,7 +5632,7 @@ function captureDeletionSnapshot(name) {
         const ol = dj('AuditOpen');
         if (ol) {
           if (!items.length) ol.innerHTML = '<div class="dj-empty" style="margin:16px 18px;"><div class="dj-empty-icon">✅</div><div class="dj-empty-title">Nothing open</div></div>';
-          else { ol.innerHTML = items.map((it, i) => '<div class="dj-open-item"><span class="oi-text">' + esc(it.task.text) + '</span><span class="oi-date">' + esc(fmtShortDate(it.key)) + '</span><button type="button" data-open-carry="' + i + '">→ Today</button></div>').join(''); ol.querySelectorAll('[data-open-carry]').forEach(btn => btn.addEventListener('click', () => { const it = items[Number(btn.dataset.openCarry)]; if (!it) return; if (it.key === todayKey()) { toast('Already today', 'info'); return; } carryTaskToToday(it.task, it.key); save(); renderAll(); })); }
+          else { ol.innerHTML = items.map((it, i) => '<div class="dj-open-item"><span class="oi-text">' + esc(it.task.text) + '</span><span class="oi-date">' + esc(fmtShortDate(it.key)) + '</span><button type="button" data-open-carry="' + i + '">→ Today</button></div>').join(''); ol.querySelectorAll('[data-open-carry]').forEach(btn => btn.addEventListener('click', () => { const it = items[Number(btn.dataset.openCarry)]; if (!it) return; if (it.key === todayKey()) { djToast('Already today', 'info'); return; } carryTaskToToday(it.task, it.key); save(); renderAll(); })); }
         }
         renderHeatmap();
       }
@@ -5341,7 +5716,7 @@ function captureDeletionSnapshot(name) {
         if (!state.days[today]) state.days[today] = { tasks: [], followUps: [], journeyDone: {}, notes: '' };
         state.days[today].tasks.push({ id: uid('task'), text: taskText, done: false, priority: 2, tags: ['study'], createdAt: Date.now(), doneAt: null, movedFrom: null, carriedTo: null });
         save(); renderDay(); renderSidebar(); renderMiniCal();
-        toast('✓ Added to Daily Journal');
+        djToast('✓ Added to Daily Journal');
       }
 
       function init() {
@@ -5398,6 +5773,12 @@ function captureDeletionSnapshot(name) {
   const state = { cfg: loadCfg(), times: null, settingsOpen: false, cacheDate: null };
 
   const $ = id => document.getElementById(id);
+
+  // Local message fallback since we can't access main IIFE's showMessage
+  function showMsg(text, type) {
+    if (window.showMessage) window.showMessage(text, type);
+    else console[type === 'error' ? 'error' : 'log']('[Namaz] ' + text);
+  }
 
   async function fetchTimes() {
     const c = state.cfg;
@@ -5541,9 +5922,9 @@ function captureDeletionSnapshot(name) {
     state.cfg = { city, country, method, minutesBefore: Number.isFinite(mb) ? mb : DEFAULTS.minutesBefore, notifyEnabled: ne };
     saveCfg(state.cfg);
     state.times = null; state.cacheDate = null;
-    try { await fetchTimes(); } catch (e) { showMessage && showMessage('Namaz: ' + e.message, 'error'); }
+    try { await fetchTimes(); } catch (e) { showMsg('Namaz: ' + e.message, 'error'); }
     renderList(); updateNextButton(); closeSettings();
-    showMessage && showMessage('Namaz settings saved.');
+    showMsg('Namaz settings saved.');
   }
 
   async function open() {
@@ -5566,13 +5947,13 @@ function captureDeletionSnapshot(name) {
         // try cached hijri from response if we ever store it; else leave blank
       }
     } catch (e) {
-      showMessage && showMessage('Namaz times: ' + e.message, 'error');
+      showMsg('Namaz times: ' + e.message, 'error');
     }
   }
   function close() { const ov = $('namazOverlay'); if (ov) { ov.classList.add('hidden'); ov.classList.remove('flex'); } }
 
   function geoLocate() {
-    if (!navigator.geolocation) { showMessage && showMessage('Geolocation not supported.', 'error'); return; }
+    if (!navigator.geolocation) { showMsg('Geolocation not supported.', 'error'); return; }
     const status = $('namazSettingsStatus');
     if (status) { status.textContent = 'Locating…'; status.classList.remove('hidden'); }
     navigator.geolocation.getCurrentPosition(async pos => {
