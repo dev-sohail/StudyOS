@@ -432,6 +432,480 @@
     .dj-side-line .dotmark{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-right:7px;display:inline-block}
     .dj-panel{display:none}
     .dj-panel.is-active{display:block}
+    /* ═══════════ COURSE BUILDER ENHANCEMENTS ═══════════ */
+
+/* Header stats pill: subtle icon alignment */
+.cb-stat i { display: inline-block; vertical-align: middle; }
+
+/* Module header hover — subtle depth */
+#modulesList [data-module-id][data-type="module"] {
+  transition: box-shadow var(--dur-2) var(--ease);
+}
+#modulesList [data-module-id][data-type="module"]:hover {
+  box-shadow: 3px 3px 0 rgba(20, 33, 61, .06);
+}
+
+/* Module header actions strip — visible separation */
+#modulesList [data-module-id][data-type="module"] > div:first-child {
+  transition: background var(--dur-2);
+}
+#modulesList [data-module-id][data-type="module"] > div:first-child:hover {
+  background: var(--surface-3) !important;
+}
+
+/* Lesson row: left accent on hover */
+.cm-lesson {
+  border-left: 3px solid transparent !important;
+  transition: border-color var(--dur-2), background var(--dur-2) !important;
+}
+.cm-lesson:hover {
+  border-left-color: var(--accent) !important;
+}
+
+/* cm-index badge — matches M1 style */
+.cm-index {
+  font: 600 10px var(--f-mono) !important;
+  color: var(--muted) !important;
+  background: var(--surface-3);
+  border-radius: var(--r-1);
+  padding: 2px 5px !important;
+  text-align: center;
+  min-width: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Auto-collapse toggle: visible on light/dark */
+.cb-check input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* cb-foot: divider alignment + mobile flow */
+.cb-foot {
+  flex-wrap: wrap;
+}
+.cb-foot .cb-sep {
+  align-self: center;
+}
+@media (max-width: 720px) {
+  .cb-foot { gap: 8px; }
+  .cb-foot .cb-sep { display: none; }
+  .cb-foot button { flex: 1 1 auto; justify-content: center; min-width: 0; }
+}
+
+/* cm-lesson-bottom: proper gap between content and meta */
+.cm-lesson-bottom {
+  gap: 10px !important;
+}
+
+/* Empty state: dashed bg tint */
+.cb-empty {
+  background: var(--surface-2);
+}
+
+/* cm-lesson-top: tighter alignment for narrow screens */
+@media (max-width: 720px) {
+  .cm-lesson-top {
+    grid-template-columns: 16px 22px 26px minmax(0, 1fr) !important;
+  }
+  .cm-actions {
+    grid-column: 1 / -1 !important;
+    justify-content: flex-end !important;
+    border-left: 0 !important;
+    padding-left: 0 !important;
+    padding-top: 6px !important;
+    border-top: 2px dashed var(--rule-2) !important;
+    margin-top: 4px;
+  }
+}
+
+/* Map view nodes: better hover */
+.cm-map-node {
+  transition: transform var(--dur-1) var(--ease), border-color var(--dur-2), box-shadow var(--dur-2), background var(--dur-2) !important;
+}
+
+/* Map module header: match new M1 badge */
+.cm-map-module-name-row {
+  align-items: center;
+}
+/* ═══════════════ COURSE BUILDER (cb-*) ═══════════════ */
+
+/* Header */
+.cb-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+  padding: 14px 20px;
+  background: var(--surface-2);
+  border-bottom: 2px solid var(--ink);
+}
+html:not([data-theme="light"]) .cb-header { border-color: var(--rule-3); }
+
+.cb-icon {
+  width: 40px; height: 40px; flex-shrink: 0;
+  display: grid; place-items: center;
+  background: var(--accent); color: var(--accent-ink);
+  border: 2px solid var(--ink); border-radius: 11px;
+  transform: rotate(-4deg);
+}
+html:not([data-theme="light"]) .cb-icon { border-color: var(--rule-3); }
+
+.cb-stat {
+  display: inline-flex; align-items: center;
+  padding: 4px 10px;
+  font: 600 11px var(--f-mono);
+  color: var(--ink-3);
+  background: var(--surface-3);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-full);
+  white-space: nowrap;
+}
+
+/* Labels & inputs */
+.cb-label {
+  display: block;
+  margin-bottom: 6px;
+  font: 700 11px var(--f-body);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.cb-input {
+  font: 500 13px var(--f-body);
+  color: var(--ink);
+  background: var(--surface);
+  border: 2px solid var(--rule-2);
+  border-radius: var(--r-2);
+  padding: 9px 12px;
+  transition: border-color var(--dur-2), box-shadow var(--dur-2);
+}
+.cb-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+}
+.cb-input::placeholder { color: var(--muted-2); }
+
+.cb-pill {
+  display: inline-flex; align-items: center;
+  padding: 2px 9px;
+  font: 500 11px var(--f-mono);
+  color: var(--ink-3);
+  background: var(--surface-3);
+  border-radius: var(--r-full);
+  white-space: nowrap;
+}
+
+/* Footer */
+.cb-foot {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 14px 20px;
+  background: var(--surface-2);
+  border-top: 2px dashed var(--rule-2);
+}
+
+.cb-sep {
+  width: 2px; height: 20px;
+  background: var(--rule-2);
+  margin: 0 4px;
+}
+
+.cb-check {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12.5px; font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer; user-select: none;
+}
+.cb-check input { margin: 0; }
+
+/* Tools strip */
+.cb-tools {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 12px 20px;
+  background: var(--surface-2);
+  border-top: 2px solid var(--rule);
+}
+
+.cb-tools-label {
+  font: 700 10px var(--f-body);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  margin-right: 4px;
+}
+
+/* Empty state */
+.cb-empty {
+  text-align: center;
+  padding: 36px 22px;
+  border: 3px dashed var(--rule-2);
+  border-radius: var(--r-3);
+  background: var(--surface-2);
+}
+
+/* ═══════════════ COURSE MANAGEMENT (cm-*) ═══════════════ */
+
+/* Lesson row container */
+.cm-lesson {
+  background: var(--surface);
+  border: 2px solid var(--rule-2);
+  border-radius: var(--r-2);
+  padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+/* Top row: handle · index · type badge · name · actions */
+.cm-lesson-top {
+  display: grid;
+  grid-template-columns: 16px 22px 26px minmax(0, 1fr) auto;
+  gap: 8px; align-items: center;
+}
+
+.cm-handle {
+  border: 0; background: transparent; padding: 0;
+  color: var(--muted-2);
+  cursor: grab; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+.cm-handle:active { cursor: grabbing; }
+
+.cm-index {
+  font: 600 10px var(--f-mono);
+  color: var(--muted);
+  background: var(--surface-3);
+  border-radius: var(--r-1);
+  padding: 2px 0;
+  text-align: center;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+
+.cm-name {
+  width: 100%; min-width: 0;
+  font: 600 13px var(--f-body);
+  color: var(--ink);
+  background: var(--surface);
+  border: 2px solid var(--rule-2);
+  border-radius: var(--r-1);
+  padding: 6px 9px;
+  transition: border-color var(--dur-2), box-shadow var(--dur-2);
+}
+.cm-name:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+}
+
+/* Action button strip */
+.cm-actions {
+  display: flex; align-items: center; gap: 2px;
+  padding-left: 6px;
+  border-left: 2px dashed var(--rule);
+}
+
+.cm-action {
+  width: 28px; height: 28px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; background: transparent;
+  border-radius: var(--r-1);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background var(--dur-2), color var(--dur-2);
+}
+.cm-action:hover { background: var(--surface-3); color: var(--ink); }
+.cm-action:disabled { opacity: .35; cursor: not-allowed; }
+.cm-action.is-danger:hover { background: var(--danger-soft); color: var(--danger); }
+.cm-action.is-accent:hover { background: var(--accent-soft); color: var(--accent); }
+
+/* Bottom row: URL/summary input + meta + due pill */
+.cm-lesson-bottom {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding-left: 46px; /* aligns with name column */
+}
+
+.cm-url {
+  flex: 1; min-width: 140px;
+  font: 500 12px var(--f-mono);
+  color: var(--ink-2);
+  background: var(--surface-2);
+  border: 2px solid var(--rule-2);
+  border-radius: var(--r-1);
+  padding: 5px 9px;
+  transition: border-color var(--dur-2), box-shadow var(--dur-2);
+}
+.cm-url:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+  background: var(--surface);
+}
+.cm-url::placeholder { color: var(--muted-2); }
+
+/* Drag helpers */
+.move-btn:disabled { opacity: .3; cursor: not-allowed; }
+.move-btn:not(:disabled):hover { background: var(--surface-3); color: var(--ink); }
+
+/* ═══════════════ MAP VIEW ═══════════════ */
+
+.cm-map-toggles {
+  display: inline-flex; align-items: center;
+  gap: 2px; padding: 2px;
+  background: var(--surface-3);
+  border-radius: var(--r-full);
+}
+
+.cm-map-toggle {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 11px;
+  font: 700 11.5px var(--f-body);
+  color: var(--muted);
+  background: transparent;
+  border: 0; border-radius: var(--r-full);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--dur-2), color var(--dur-2);
+}
+.cm-map-toggle:hover { color: var(--ink); }
+.cm-map-toggle.is-active {
+  background: var(--ink); color: var(--paper);
+}
+.cm-map-toggle :is(svg, .fa) { width: 11px; height: 11px; }
+
+/* Map container: horizontal scroll of module columns */
+.cm-map-container {
+  display: flex; gap: 14px;
+  overflow-x: auto;
+  padding: 4px 2px 14px;
+  scrollbar-gutter: stable;
+}
+
+.cm-map-column {
+  flex: 0 0 230px;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px;
+  background: var(--surface-2);
+  border: 2px solid var(--rule-2);
+  border-radius: var(--r-2);
+}
+
+.cm-map-module-header {
+  display: flex; flex-direction: column; gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 2px dashed var(--rule-2);
+}
+
+.cm-map-module-name-row {
+  display: flex; align-items: center; gap: 6px;
+}
+
+.cm-map-module-name {
+  flex: 1; min-width: 0;
+  font: 700 12.5px var(--f-body);
+  color: var(--ink);
+  background: var(--surface);
+  border: 2px solid var(--rule-2);
+  border-radius: var(--r-1);
+  padding: 4px 7px;
+}
+.cm-map-module-name:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+}
+
+.cm-map-module-meta {
+  display: flex; align-items: center; gap: 8px;
+}
+
+.cm-map-module-progress {
+  flex: 1; height: 6px;
+  background: var(--rule);
+  border-radius: var(--r-full);
+  overflow: hidden;
+}
+.cm-map-module-progress-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: var(--r-full);
+  transition: width var(--dur-3) var(--ease);
+}
+
+.cm-map-module-count {
+  font: 500 10px var(--f-mono);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.cm-map-module-actions {
+  display: flex; align-items: center; gap: 2px;
+  justify-content: flex-end;
+}
+
+/* Map lesson node */
+.cm-map-node {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  text-align: left;
+  background: var(--surface);
+  border: 2px solid var(--rule-2);
+  border-radius: var(--r-2);
+  cursor: pointer;
+  font: 500 12px var(--f-body);
+  color: var(--ink-2);
+  transition: transform var(--dur-1) var(--ease), border-color var(--dur-2), box-shadow var(--dur-2), background var(--dur-2);
+}
+.cm-map-node:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  transform: translateY(-1px);
+  box-shadow: 2px 2px 0 rgba(20, 33, 61, .12);
+}
+.cm-map-node.done {
+  background: var(--success-soft);
+  border-color: var(--success-line);
+}
+.cm-map-node.done .cm-map-node-label {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.cm-map-node-icon { flex-shrink: 0; font-size: 13px; line-height: 1; }
+
+.cm-map-node-label {
+  flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.type-choice {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; text-align: left;
+  padding: 10px 12px;
+  background: var(--surface); border: 2px solid var(--rule-2);
+  border-radius: var(--r-2); cursor: pointer;
+  transition: border-color var(--dur-2), background var(--dur-2), transform var(--dur-1);
+}
+.type-choice:hover { border-color: var(--accent); background: var(--accent-soft); transform: translateX(2px); }
+.tc-icon { width: 38px; height: 38px; flex-shrink: 0; display: grid; place-items: center; border-radius: 10px; }
+.tc-title { font: 700 14px var(--f-body); color: var(--ink); }
+.tc-desc  { font: 500 11.5px var(--f-body); color: var(--muted); margin-top: 2px; }
+
+.lesson-add-today {
+  flex-shrink: 0;
+  padding: 2px 7px;
+  font: 700 10px var(--f-mono);
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-full);
+  cursor: pointer;
+  transition: background var(--dur-2);
+}
+.lesson-add-today:hover { background: var(--accent); color: var(--accent-ink); }
   </style>
 </head>
 <body class="min-h-screen">
@@ -532,6 +1006,8 @@
 
       <!-- ═══════════ COURSE MANAGEMENT ═══════════ -->
       <div class="hidden mb-8 card overflow-hidden" id="courseManagement" role="region" aria-label="Course builder">
+
+        <!-- ═════ HEADER ═════ -->
         <div class="cb-header">
           <div class="flex items-center gap-3 min-w-0">
             <div class="cb-icon"><i class="fa-solid fa-book w-5 h-5"></i></div>
@@ -540,8 +1016,11 @@
               <p class="text-[12px] truncate" style="color: var(--muted);">Drag to reorder · auto-saves as you type</p>
             </div>
           </div>
-          <div class="flex items-center gap-2 flex-shrink-0">
-            <span class="cb-stat"><span class="tabular-nums" id="courseManageStats">0 / 0 lessons</span></span>
+          <div class="flex items-center gap-2 flex-shrink-0 flex-wrap">
+            <span class="cb-stat">
+              <i class="fa-solid fa-layer-group" style="font-size:10px;margin-right:5px;opacity:.7;"></i>
+              <span class="tabular-nums" id="courseManageStats">0 / 1 lessons</span>
+            </span>
             <div class="cm-map-toggles flex-shrink-0">
               <button class="cm-map-toggle is-active" id="cmToggleList" onclick="cmSetView('list')" type="button" title="List view">
                 <i class="fa-solid fa-list"></i> List
@@ -556,11 +1035,12 @@
           </div>
         </div>
 
+        <!-- ═════ BODY ═════ -->
         <div class="p-5 sm:p-6 space-y-6">
           <div>
             <label class="cb-label" for="courseNameInput">Course name</label>
             <div class="flex items-center gap-2">
-              <input class="cb-input flex-1" id="courseNameInput" placeholder="e.g. Full-Stack Web Development" type="text" />
+              <input class="cb-input flex-1" id="courseNameInput" placeholder="e.g. Full-Stack Web Development" type="text">
               <span class="text-xs font-semibold whitespace-nowrap" id="courseSaveStatus" aria-live="polite"></span>
             </div>
           </div>
@@ -568,7 +1048,7 @@
           <div class="flex items-center justify-between gap-3 flex-wrap">
             <div class="flex items-center gap-2.5">
               <h3 class="cb-label !mb-0">Modules</h3>
-              <span class="cb-pill tabular-nums" id="moduleCount">0 modules</span>
+              <span class="cb-pill tabular-nums" id="moduleCount">1 module</span>
             </div>
             <button class="btn btn-primary btn-sm" onclick="addModule()" type="button">
               <i class="fa-solid fa-plus"></i>Add module
@@ -578,7 +1058,8 @@
           <div class="space-y-4" id="modulesList"></div>
 
           <div id="bulkActionsBar" class="hidden flex flex-wrap items-center gap-2 p-3" style="background:var(--warn-soft);border:2px solid var(--warn-line);border-radius:var(--r-2);">
-            <span class="text-xs font-bold" style="color:var(--warn);">
+            <span class="inline-flex items-center gap-1.5 text-xs font-bold" style="color:var(--warn);">
+              <i class="fa-solid fa-check-double" style="font-size:11px;"></i>
               <span id="bulkCount">0</span> lesson(s) selected
             </span>
             <div class="flex-1"></div>
@@ -589,61 +1070,65 @@
             <button class="btn btn-danger btn-sm" type="button" onclick="bulkDeleteLessons()"><i class="fa-solid fa-trash"></i>Delete</button>
             <button class="btn btn-ghost btn-sm" type="button" onclick="toggleBulkSelectionMode()">Cancel</button>
           </div>
+
           <div id="courseManageEmpty" class="cb-empty hidden">
             <div class="text-4xl mb-3">📚</div>
-            <p class="text-sm font-semibold" style="font-family: var(--f-display); color: var(--ink-3);">This course has no modules yet</p>
-            <p class="text-xs mt-1 mb-4" style="color: var(--muted);">Add a module, then fill it with lessons.</p>
+            <p class="text-sm font-semibold" style="font-family:var(--f-display);color:var(--ink-3);">This course has no modules yet</p>
+            <p class="text-xs mt-1 mb-4" style="color:var(--muted);">Add a module, then fill it with lessons.</p>
             <button class="btn btn-primary btn-sm" onclick="addModule()" type="button">
               <i class="fa-solid fa-plus"></i>Add first module
             </button>
           </div>
         </div>
 
+        <!-- ═════ FOOTER ═════ -->
         <div class="cb-foot">
           <button class="btn btn-primary" onclick="saveCourseDataFromUI({ strict: true })" type="button">
             <i class="fa-solid fa-check-circle"></i>Save course
           </button>
           <label class="cb-check">
-            <input class="rounded" id="autoCollapseToggle" onchange="setAutoCollapsePreference(this.checked)" type="checkbox" />
+            <input class="rounded" id="autoCollapseToggle" onchange="setAutoCollapsePreference(this.checked)" type="checkbox">
             <span>Auto-collapse completed modules</span>
           </label>
-          <button class="btn btn-ghost btn-sm sm:ml-auto" onclick="renameCurrentCourse()" type="button" title="Rename the current course">
-            <i class="fa-solid fa-pen"></i>Rename course
+          <span class="cb-sep"></span>
+          <button class="btn btn-ghost btn-sm" onclick="renameCurrentCourse()" type="button" title="Rename the current course">
+            <i class="fa-solid fa-pen"></i>Rename
           </button>
           <button class="btn btn-ghost btn-sm" onclick="resetCurrentCourse()" type="button" title="Wipe the current course and start clean">
-            <i class="fa-solid fa-rotate-left"></i>Reset course
+            <i class="fa-solid fa-rotate-left"></i>Reset
           </button>
-          <button class="btn btn-danger btn-sm" onclick="deleteCurrentCourse()" type="button" title="Delete this course permanently">
-            <i class="fa-solid fa-trash"></i>Delete course
+          <button class="btn btn-danger btn-sm ml-auto" onclick="deleteCurrentCourse()" type="button" title="Delete this course permanently">
+            <i class="fa-solid fa-trash"></i>Delete
           </button>
         </div>
 
+        <!-- ═════ TOOLS ═════ -->
         <div class="cb-tools">
           <span class="cb-tools-label">Tools</span>
-          <button class="btn btn-ghost btn-sm" onclick="importFromYouTubePlaylist()" type="button" title="Paste a YouTube playlist URL to import all videos">
+          <button class="btn btn-ghost btn-sm" onclick="importFromYouTubePlaylist()" type="button" title="Paste a YouTube playlist URL">
             <i class="fa-solid fa-download"></i>Import playlist
           </button>
-          <button class="btn btn-ghost btn-sm" onclick="fetchAllDurations()" type="button" title="Fetch video durations from YouTube">
+          <button class="btn btn-ghost btn-sm" onclick="fetchAllDurations()" type="button" title="Fetch video durations">
             <i class="fa-solid fa-clock"></i>Fetch durations
           </button>
-          <button class="btn btn-ghost btn-sm" onclick="fetchAllTitles()" type="button" title="Fetch video titles from YouTube">
+          <button class="btn btn-ghost btn-sm" onclick="fetchAllTitles()" type="button" title="Fetch video titles">
             <i class="fa-solid fa-font"></i>Fetch titles
           </button>
-          <button class="btn btn-ghost btn-sm" onclick="duplicateCourse()" type="button" title="Make a copy of this course">
+          <button class="btn btn-ghost btn-sm" onclick="duplicateCourse()" type="button" title="Make a copy">
             <i class="fa-solid fa-clone"></i>Duplicate
           </button>
           <span class="cb-sep"></span>
-          <button class="btn btn-ghost btn-sm" id="bulkSelectBtn" onclick="toggleBulkSelectionMode()" type="button" title="Select multiple lessons at once">
+          <button class="btn btn-ghost btn-sm" id="bulkSelectBtn" onclick="toggleBulkSelectionMode()" type="button" title="Bulk select">
             <i class="fa-solid fa-check-circle"></i>Bulk select
           </button>
-          <button class="btn btn-ghost btn-sm" onclick="captureDeletionSnapshot('Checkpoint')" type="button" title="Save a restore point">
+          <button class="btn btn-ghost btn-sm" onclick="captureDeletionSnapshot('Checkpoint')" type="button" title="Save restore point">
             <i class="fa-solid fa-bookmark"></i>Checkpoint
           </button>
           <span class="cb-sep"></span>
-          <button class="btn btn-ghost btn-sm" onclick="exportCourseOnly()" type="button" title="Download this course as JSON">
+          <button class="btn btn-ghost btn-sm" onclick="exportCourseOnly()" type="button" title="Download course">
             <i class="fa-solid fa-download"></i>Export
           </button>
-          <button class="btn btn-ghost btn-sm" onclick="importCourseOnly()" type="button" title="Load a course from a JSON file">
+          <button class="btn btn-ghost btn-sm" onclick="importCourseOnly()" type="button" title="Load course">
             <i class="fa-solid fa-arrow-up-from-bracket"></i>Import
           </button>
         </div>
@@ -2775,42 +3260,55 @@
         const matches = getAllLessons().filter(l => getCourseVideoId(l) === currentVideoId);
         return matches.length === 1 ? matches[0] : null;
       }
-      function getLessonSavedDuration(lesson) { if (!lesson || !lesson.url) return 0; const key = getCourseVideoId(lesson); if (!key) return 0; const saved = getStorage()[key]; const d = Number(saved && saved.duration); return Number.isFinite(d) && d > 0 ? d : 0; }
-      function getModuleProgress(module, progressOverride) {
-        if (!module || !Array.isArray(module.lessons)) return { completed: 0, total: 0, percentage: 0 };
-        const p = progressOverride || getCourseProgress();
-        let completed = 0, total = 0;
-        module.lessons.forEach(l => {
-          const t = getLessonType(l);
-          let countable = t === 'pdf' || t === 'web' ? !!l.url : t === 'video' ? !!(l.url && getCourseVideoId(l)) : true;
-          if (!countable) return;
-          total++; if (p[l.id] && p[l.id].completed === true) completed++;
-        });
-        return { completed, total, percentage: total ? Math.round((completed / total) * 100) : 0 };
-      }
-      function getCourseStats() {
-        const all = getAllLessons(), p = getCourseProgress(), store = getStorage();
-        let total = 0, completed = 0, totalDuration = 0;
-        all.forEach(l => {
-          const t = getLessonType(l);
-          const countable = t === 'pdf' || t === 'web' ? !!l.url : t === 'video' ? !!(l.url && getCourseVideoId(l)) : true;
-          if (!countable) return;
-          total++; if (p[l.id] && p[l.id].completed) completed++;
-          if (t === 'video' && l.url) { const key = getCourseVideoId(l); const saved = key ? store[key] : null; const d = Number(saved && saved.duration); if (Number.isFinite(d) && d > 0) totalDuration += d; }
-        });
-        return { total, completed, percentage: total ? Math.round((completed / total) * 100) : 0, totalDuration };
-      }
-      function getNextIncompleteLesson() {
-        if (!currentCourse) return null;
-        const p = getCourseProgress();
-        for (const m of currentCourse.modules) for (const l of m.lessons) {
-          const t = getLessonType(l);
-          if (t === 'video' && (!l.url || !getCourseVideoId(l))) continue;
-          const pr = p[l.id];
-          if (!pr || pr.completed !== true) return { lesson: l, module: m };
-        }
-        return null;
-      }
+      function getLessonSavedDuration(lesson) {
+  if (!lesson || !lesson.url) return 0;
+  const key = getCourseVideoId(lesson); if (!key) return 0;
+  const saved = getStorage()[key];
+  const d = Number(saved && saved.duration);
+  return Number.isFinite(d) && d > 0 ? d : 0;
+}
+function getModuleProgress(module, progressOverride) {
+  if (!module || !Array.isArray(module.lessons)) return { completed: 0, total: 0, percentage: 0 };
+  const p = progressOverride || getCourseProgress();
+  let completed = 0, total = 0;
+  module.lessons.forEach(l => {
+    const t = getLessonType(l);
+    const countable = t === 'pdf' || t === 'web' ? !!l.url : t === 'video' ? !!(l.url && getCourseVideoId(l)) : true;
+    if (!countable) return;
+    total++;
+    if (p[l.id] && p[l.id].completed === true) completed++;
+  });
+  return { completed, total, percentage: total ? Math.round((completed / total) * 100) : 0 };
+}
+function getCourseStats() {
+  const all = getAllLessons(), p = getCourseProgress(), store = getStorage();
+  let total = 0, completed = 0, totalDuration = 0;
+  all.forEach(l => {
+    const t = getLessonType(l);
+    const countable = t === 'pdf' || t === 'web' ? !!l.url : t === 'video' ? !!(l.url && getCourseVideoId(l)) : true;
+    if (!countable) return;
+    total++;
+    if (p[l.id] && p[l.id].completed) completed++;
+    if (t === 'video' && l.url) {
+      const key = getCourseVideoId(l);
+      const saved = key ? store[key] : null;
+      const d = Number(saved && saved.duration);
+      if (Number.isFinite(d) && d > 0) totalDuration += d;
+    }
+  });
+  return { total, completed, percentage: total ? Math.round((completed / total) * 100) : 0, totalDuration };
+}
+function getNextIncompleteLesson() {
+  if (!currentCourse) return null;
+  const p = getCourseProgress();
+  for (const m of currentCourse.modules) for (const l of m.lessons) {
+    const t = getLessonType(l);
+    if (t === 'video' && (!l.url || !getCourseVideoId(l))) continue;
+    const pr = p[l.id];
+    if (!pr || pr.completed !== true) return { lesson: l, module: m };
+  }
+  return null;
+}
       function validateCourseLessons() {
         if (!currentCourse) return { valid: false, message: 'No course loaded.', warnings: [] };
         const seen = new Map(), warnings = [];
@@ -3339,79 +3837,315 @@
       function expandAllModules() { setCollapsedState({}); renderCourseCurriculum(); }
 
       /* ---------- Course Management UI ---------- */
-      function renderCourseManagement() {
-        const nameInput = $('courseNameInput'); if (!nameInput || !currentCourse) return;
+
+            function renderCourseManagement() {
+        const nameInput = $('courseNameInput');
+        if (!nameInput || !currentCourse) return;
+
         nameInput.value = currentCourse.name;
-        const count = $('moduleCount'); if (count) count.textContent = currentCourse.modules.length + ' module' + (currentCourse.modules.length === 1 ? '' : 's');
+
+        const count = $('moduleCount');
+        if (count) count.textContent = currentCourse.modules.length + ' module' + (currentCourse.modules.length === 1 ? '' : 's');
+
         renderCourseManageStats();
-        const ac = $('autoCollapseToggle'); if (ac) ac.checked = getAutoCollapsePreference();
-        if (mapViewMode === 'map') renderCourseMap(); else renderCourseManagementList();
-        const bsBtn = $('bulkSelectBtn'); if (bsBtn) bsBtn.textContent = bulkSelectionMode ? 'Cancel select' : 'Bulk select';
-        const emptyEl = $('courseManageEmpty'); if (emptyEl) emptyEl.classList.toggle('hidden', currentCourse.modules.length > 0);
+
+        const ac = $('autoCollapseToggle');
+        if (ac) {
+          ac.checked = getAutoCollapsePreference();
+          ac.style.accentColor = 'var(--accent)';
+          ac.style.width = '16px';
+          ac.style.height = '16px';
+          ac.style.cursor = 'pointer';
+        }
+
+        if (mapViewMode === 'map') renderCourseMap();
+        else renderCourseManagementList();
+
+        const bsBtn = $('bulkSelectBtn');
+        if (bsBtn) bsBtn.textContent = bulkSelectionMode ? 'Cancel select' : 'Bulk select';
+
+        const emptyEl = $('courseManageEmpty');
+        if (emptyEl) emptyEl.classList.toggle('hidden', currentCourse.modules.length > 0);
       }
+
       function renderCourseManagementList() {
-        const modulesList = $('modulesList'); if (!modulesList) return;
+        const modulesList = $('modulesList');
+        if (!modulesList) return;
         modulesList.innerHTML = '';
+        const progress = getCourseProgress();
+
         currentCourse.modules.forEach((m, mi) => {
+          const mp = getModuleProgress(m, progress);
+          const allDone = mp.total > 0 && mp.completed === mp.total;
+
           const moduleEl = document.createElement('div');
           moduleEl.className = 'overflow-hidden';
-          moduleEl.style.cssText = 'background:var(--surface);border:2px solid var(--rule-2);border-radius:var(--r-2);';
-          moduleEl.dataset.moduleId = m.id; moduleEl.dataset.type = 'module'; moduleEl.setAttribute('draggable', 'true');
+          moduleEl.style.cssText = 'background:var(--surface);border:2px solid var(--rule-2);border-radius:var(--r-2);transition:box-shadow var(--dur-2) var(--ease);';
+          moduleEl.dataset.moduleId = m.id;
+          moduleEl.dataset.type = 'module';
+          moduleEl.setAttribute('draggable', 'true');
+
+          // ── MODULE HEADER ──
           const header = document.createElement('div');
           header.className = 'px-4 py-3 flex items-center justify-between gap-3 flex-wrap';
           header.style.cssText = 'background:var(--surface-2);border-bottom:2px dashed var(--rule-2);';
-          header.innerHTML = '<div class="flex items-center gap-2 flex-1 min-w-0"><button type="button" data-drag-handle="module" class="cursor-grab active:cursor-grabbing flex-shrink-0 p-1" style="color:var(--muted);" title="Drag module"><i class="fa-solid fa-grip-lines"></i></button><span class="text-xs font-semibold flex-shrink-0" style="color:var(--muted);font-family:var(--f-mono);">M' + (mi + 1) + '</span><input type="text" value="' + U.esc(m.name) + '" data-module-name placeholder="Module name..." class="flex-1 min-w-0 px-3 py-1.5 text-sm font-semibold" style="background:var(--surface);border:2px solid var(--rule-2);border-radius:var(--r-1);color:var(--ink);"></div><div class="flex items-center gap-1 flex-shrink-0"><button type="button" data-action="move-module-up" data-module-id="' + m.id + '" class="move-btn p-1" style="color:var(--muted);" ' + (mi === 0 ? 'disabled' : '') + '><i class="fa-solid fa-chevron-up"></i></button><button type="button" data-action="move-module-down" data-module-id="' + m.id + '" class="move-btn p-1" style="color:var(--muted);" ' + (mi === currentCourse.modules.length - 1 ? 'disabled' : '') + '><i class="fa-solid fa-chevron-down"></i></button><button type="button" data-action="toggle-module-complete" data-module-id="' + m.id + '" class="p-1.5" style="color:var(--success);border-radius:var(--r-1);" title="Toggle module complete"><i class="fa-solid fa-circle-check"></i></button><button type="button" data-action="bulk-add-lessons" data-module-id="' + m.id + '" class="p-1.5" style="color:var(--muted);border-radius:var(--r-1);" title="Bulk add lessons"><i class="fa-solid fa-list"></i></button><button type="button" data-action="choose-lesson-type" data-module-id="' + m.id + '" class="p-1.5" style="color:var(--accent);border-radius:var(--r-1);" title="Add lesson"><i class="fa-solid fa-plus"></i></button><button type="button" data-action="delete-module" data-module-id="' + m.id + '" class="p-1.5" style="color:var(--danger);border-radius:var(--r-1);" title="Delete module"><i class="fa-solid fa-trash"></i></button></div>';
+          header.innerHTML =
+            '<div class="flex items-center gap-2 flex-1 min-w-0">' +
+              '<button type="button" data-drag-handle="module" class="cursor-grab active:cursor-grabbing flex-shrink-0 p-1" style="color:var(--muted);" title="Drag module">' +
+                '<i class="fa-solid fa-grip-lines" style="font-size:12px;"></i>' +
+              '</button>' +
+              '<span class="text-[10px] font-bold tabular-nums flex-shrink-0" style="color:var(--muted);font-family:var(--f-mono);padding:2px 6px;background:var(--surface-3);border-radius:var(--r-1);">M' + (mi + 1) + '</span>' +
+              '<input type="text" value="' + U.esc(m.name) + '" data-module-name placeholder="Module name…" class="flex-1 min-w-0 px-3 py-1.5 text-sm font-semibold" style="background:var(--surface);border:2px solid var(--rule-2);border-radius:var(--r-1);color:var(--ink);">' +
+              (mp.total > 0
+                ? '<span class="text-[10px] font-semibold tabular-nums flex-shrink-0 px-1.5 py-0.5" style="color:' + (allDone ? 'var(--success)' : 'var(--muted)') + ';background:' + (allDone ? 'var(--success-soft)' : 'var(--surface-3)') + ';border-radius:var(--r-1);font-family:var(--f-mono);" title="' + mp.completed + ' of ' + mp.total + ' lessons done">' + mp.completed + '/' + mp.total + '</span>'
+                : '') +
+            '</div>' +
+            '<div class="flex items-center gap-1 flex-shrink-0">' +
+              '<button type="button" data-action="move-module-up" data-module-id="' + m.id + '" class="move-btn p-1.5" style="color:var(--muted);border-radius:var(--r-1);" ' + (mi === 0 ? 'disabled' : '') + ' title="Move up">' +
+                '<i class="fa-solid fa-chevron-up" style="font-size:11px;"></i>' +
+              '</button>' +
+              '<button type="button" data-action="move-module-down" data-module-id="' + m.id + '" class="move-btn p-1.5" style="color:var(--muted);border-radius:var(--r-1);" ' + (mi === currentCourse.modules.length - 1 ? 'disabled' : '') + ' title="Move down">' +
+                '<i class="fa-solid fa-chevron-down" style="font-size:11px;"></i>' +
+              '</button>' +
+              '<span style="width:1px;height:16px;background:var(--rule-2);margin:0 2px;"></span>' +
+              '<button type="button" data-action="toggle-module-complete" data-module-id="' + m.id + '" class="p-1.5" style="color:var(--success);border-radius:var(--r-1);" title="Toggle module complete">' +
+                '<i class="fa-solid fa-circle-check" style="font-size:12px;"></i>' +
+              '</button>' +
+              '<button type="button" data-action="bulk-add-lessons" data-module-id="' + m.id + '" class="p-1.5" style="color:var(--muted);border-radius:var(--r-1);" title="Bulk add lessons">' +
+                '<i class="fa-solid fa-list" style="font-size:12px;"></i>' +
+              '</button>' +
+              '<button type="button" data-action="choose-lesson-type" data-module-id="' + m.id + '" class="p-1.5" style="color:var(--accent);border-radius:var(--r-1);" title="Add lesson">' +
+                '<i class="fa-solid fa-plus" style="font-size:12px;"></i>' +
+              '</button>' +
+              '<button type="button" data-action="delete-module" data-module-id="' + m.id + '" class="p-1.5" style="color:var(--danger);border-radius:var(--r-1);" title="Delete module">' +
+                '<i class="fa-solid fa-trash" style="font-size:12px;"></i>' +
+              '</button>' +
+            '</div>';
+
+          // ── LESSONS LIST ──
           const lessonsList = document.createElement('div');
           lessonsList.dataset.lessonsList = '';
           lessonsList.className = 'p-3 space-y-2 min-h-[48px]';
           lessonsList.style.background = 'var(--surface)';
+
           m.lessons.forEach((l, li) => {
             const lessonEl = document.createElement('div');
             lessonEl.className = 'cm-lesson';
-            lessonEl.dataset.lessonId = l.id; lessonEl.dataset.moduleId = m.id; lessonEl.dataset.type = 'lesson';
-            const lt = getLessonType(l); const b = getTypeBadge(lt);
-            let contentPart;
-            if (lt === 'video') contentPart = '<input type="text" value="' + U.esc(l.url) + '" data-lesson-url="' + l.id + '" placeholder="YouTube, Vimeo, or .mp4 URL…" class="cm-url">';
-            else if (lt === 'pdf' || lt === 'web') contentPart = '<input type="text" value="' + U.esc(l.url) + '" data-pdf-url="' + l.id + '" placeholder="' + (lt === 'web' ? 'https://example.com/page' : 'https://example.com/file.pdf') + '" class="cm-url">';
-            else {
-              let summary;
-              if (lt === 'reading') { const w = (l.content || '').trim().split(/\s+/).filter(Boolean).length; summary = w ? '📖 ' + w + ' words — click to edit' : '📖 Click to write content'; }
-              else if (lt === 'practice') { const c = (l.tasks || []).length, d = (l.tasks || []).filter(x => x.done).length; summary = c ? '✅ ' + d + '/' + c + ' tasks — click to edit' : '✅ Click to add tasks'; }
-              else if (lt === 'quiz') { const c = (l.quiz || []).length; summary = c ? '📝 ' + c + ' question' + (c === 1 ? '' : 's') + ' — click to edit' : '📝 Load lesson to add questions'; }
-              else summary = 'Click to edit';
+            lessonEl.dataset.lessonId = l.id;
+            lessonEl.dataset.moduleId = m.id;
+            lessonEl.dataset.type = 'lesson';
+
+            const lt = getLessonType(l);
+            const b = getTypeBadge(lt);
+            let contentPart, metaPart = '';
+            let urlOk = true;
+
+            if (lt === 'video') {
+              urlOk = !l.url || !!getVideoSource(l.url);
+              contentPart = '<input type="text" value="' + U.esc(l.url) + '" data-lesson-url="' + l.id + '" placeholder="YouTube, Vimeo, or .mp4 URL…" class="cm-url"' + (l.url && !urlOk ? ' style="border-color:var(--danger-line);"' : '') + '>';
+            } else if (lt === 'pdf' || lt === 'web') {
+              urlOk = !l.url || /^https?:\/\//i.test(l.url);
+              contentPart = '<input type="text" value="' + U.esc(l.url) + '" data-pdf-url="' + l.id + '" placeholder="' + (lt === 'web' ? 'https://example.com/page' : 'https://example.com/file.pdf') + '" class="cm-url"' + (l.url && !urlOk ? ' style="border-color:var(--danger-line);"' : '') + '>';
+            } else {
+              let summary = '', meta = '';
+              if (lt === 'reading') {
+                const w = (l.content || '').trim().split(/\s+/).filter(Boolean).length;
+                summary = w ? '📖 ' + w + ' words' : '📖 Click to write content';
+                meta = w ? Math.max(1, Math.round(w / 200)) + ' min read' : '';
+              } else if (lt === 'practice') {
+                const c = (l.tasks || []).length, d = (l.tasks || []).filter(x => x.done).length;
+                summary = c ? '✅ ' + d + '/' + c + ' tasks' : '✅ Click to add tasks';
+                meta = c ? (d === c ? '✓ complete' : 'in progress') : '';
+              } else if (lt === 'quiz') {
+                const c = (l.quiz || []).length;
+                summary = c ? '📝 ' + c + ' question' + (c === 1 ? '' : 's') : '📝 No questions yet';
+                meta = l.quizBestScore ? 'best ' + l.quizBestScore + '%' : '';
+              }
               contentPart = '<button type="button" onclick="openContentEditorFromRow(\'' + l.id + '\')" class="cm-url text-left" style="cursor:pointer;font-weight:500;color:var(--ink-2);">' + summary + '</button>';
+              if (meta) metaPart = '<span class="text-[10px] tabular-nums flex-shrink-0" style="color:var(--muted-2);font-family:var(--f-mono);">' + meta + '</span>';
             }
-            lessonEl.innerHTML = '<div class="cm-lesson-top"><button type="button" class="cm-handle" data-drag-handle="lesson"><i class="fa-solid fa-grip-vertical"></i></button><span class="cm-index">' + (li + 1) + '</span><span class="type-badge" title="' + b.label + '" style="background:' + b.bg + ';color:' + b.color + ';">' + b.icon + '</span><input type="text" value="' + U.esc(l.name) + '" data-lesson-name="' + l.id + '" placeholder="Lesson name…" class="cm-name"><div class="cm-actions"><button type="button" class="cm-action is-accent" data-action="choose-lesson-type" data-module-id="' + m.id + '" data-lesson-id="' + l.id + '" title="Change lesson type"><i class="fa-solid fa-shapes"></i></button><button type="button" class="cm-action" data-action="move-lesson-up" data-module-id="' + m.id + '" data-lesson-id="' + l.id + '" ' + (li === 0 ? 'disabled' : '') + '><i class="fa-solid fa-chevron-up"></i></button><button type="button" class="cm-action" data-action="move-lesson-down" data-module-id="' + m.id + '" data-lesson-id="' + l.id + '" ' + (li === m.lessons.length - 1 ? 'disabled' : '') + '><i class="fa-solid fa-chevron-down"></i></button><button type="button" class="cm-action is-danger" data-action="delete-lesson" data-module-id="' + m.id + '" data-lesson-id="' + l.id + '"><i class="fa-solid fa-trash"></i></button></div></div><div class="cm-lesson-bottom">' + contentPart + '</div>';
+
+            const duePill = l.dueAt
+              ? '<span class="due-pill ' + getDueBadgeClass(l.dueAt) + '" style="font-size:10px;padding:1px 6px;" title="' + new Date(l.dueAt).toLocaleString() + '">📅 ' + formatDueDate(l.dueAt) + '</span>'
+              : '';
+
+            lessonEl.innerHTML =
+              '<div class="cm-lesson-top">' +
+                '<button type="button" class="cm-handle" data-drag-handle="lesson" title="Drag lesson">' +
+                  '<i class="fa-solid fa-grip-vertical" style="font-size:11px;"></i>' +
+                '</button>' +
+                '<span class="cm-index" style="font-size:10px;padding:2px 5px;background:var(--surface-3);border-radius:var(--r-1);min-width:22px;display:inline-flex;align-items:center;justify-content:center;">' + (li + 1) + '</span>' +
+                '<span class="type-badge" title="' + b.label + '" style="background:' + b.bg + ';color:' + b.color + ';">' + b.icon + '</span>' +
+                '<input type="text" value="' + U.esc(l.name) + '" data-lesson-name="' + l.id + '" placeholder="Lesson name…" class="cm-name">' +
+                '<div class="cm-actions">' +
+                  '<button type="button" class="cm-action is-accent" data-action="choose-lesson-type" data-module-id="' + m.id + '" data-lesson-id="' + l.id + '" title="Change lesson type">' +
+                    '<i class="fa-solid fa-shapes" style="font-size:11px;"></i>' +
+                  '</button>' +
+                  '<button type="button" class="cm-action" data-action="move-lesson-up" data-module-id="' + m.id + '" data-lesson-id="' + l.id + '" ' + (li === 0 ? 'disabled' : '') + ' title="Move up">' +
+                    '<i class="fa-solid fa-chevron-up" style="font-size:10px;"></i>' +
+                  '</button>' +
+                  '<button type="button" class="cm-action" data-action="move-lesson-down" data-module-id="' + m.id + '" data-lesson-id="' + l.id + '" ' + (li === m.lessons.length - 1 ? 'disabled' : '') + ' title="Move down">' +
+                    '<i class="fa-solid fa-chevron-down" style="font-size:10px;"></i>' +
+                  '</button>' +
+                  '<button type="button" class="cm-action is-danger" data-action="delete-lesson" data-module-id="' + m.id + '" data-lesson-id="' + l.id + '" title="Delete lesson">' +
+                    '<i class="fa-solid fa-trash" style="font-size:11px;"></i>' +
+                  '</button>' +
+                '</div>' +
+              '</div>' +
+              '<div class="cm-lesson-bottom">' + contentPart + metaPart + duePill + '</div>';
+
             lessonsList.appendChild(lessonEl);
           });
-          moduleEl.appendChild(header); moduleEl.appendChild(lessonsList); modulesList.appendChild(moduleEl);
+
+          // ── EMPTY MODULE → inline "add first lesson" ──
+          if (!m.lessons.length) {
+            const empty = document.createElement('button');
+            empty.type = 'button';
+            empty.className = 'w-full flex items-center justify-center gap-2 py-3 text-xs font-semibold';
+            empty.style.cssText = 'background:transparent;border:2px dashed var(--rule-2);border-radius:var(--r-2);color:var(--muted);cursor:pointer;transition:all var(--dur-2);';
+            empty.innerHTML = '<i class="fa-solid fa-plus" style="font-size:10px;"></i>Add first lesson';
+            empty.addEventListener('click', () => openTypeChooser(m.id));
+            empty.addEventListener('mouseover', () => { empty.style.borderColor = 'var(--accent)'; empty.style.color = 'var(--accent)'; empty.style.background = 'var(--accent-soft)'; });
+            empty.addEventListener('mouseout', () => { empty.style.borderColor = 'var(--rule-2)'; empty.style.color = 'var(--muted)'; empty.style.background = 'transparent'; });
+            lessonsList.appendChild(empty);
+          }
+
+          moduleEl.appendChild(header);
+          moduleEl.appendChild(lessonsList);
+          modulesList.appendChild(moduleEl);
         });
       }
+
       function renderCourseMap() {
-        const modulesList = $('modulesList'); if (!modulesList || !currentCourse) return;
+        const modulesList = $('modulesList');
+        if (!modulesList || !currentCourse) return;
         modulesList.innerHTML = '';
         if (!currentCourse.modules.length) return;
+
         const p = getCourseProgress();
-        const container = document.createElement('div'); container.className = 'cm-map-container';
-        currentCourse.modules.forEach((m) => {
-          const column = document.createElement('div'); column.className = 'cm-map-column'; column.dataset.moduleId = m.id;
+        const container = document.createElement('div');
+        container.className = 'cm-map-container';
+
+        currentCourse.modules.forEach((m, mi) => {
+          const column = document.createElement('div');
+          column.className = 'cm-map-column';
+          column.dataset.moduleId = m.id;
+
           const mp = getModuleProgress(m, p);
-          const header = document.createElement('div'); header.className = 'cm-map-module-header';
-          header.innerHTML = '<div class="cm-map-module-name-row"><input type="text" value="' + U.esc(m.name) + '" data-module-name class="cm-map-module-name"></div><div class="cm-map-module-meta"><div class="cm-map-module-progress"><div class="cm-map-module-progress-bar" style="width:' + mp.percentage + '%"></div></div><span class="cm-map-module-count">' + m.lessons.length + ' lesson' + (m.lessons.length === 1 ? '' : 's') + '</span></div><div class="cm-map-module-actions"><button type="button" data-action="toggle-module-complete" data-module-id="' + m.id + '" class="p-1.5" style="color:var(--success);border-radius:var(--r-1);"><i class="fa-solid fa-circle-check"></i></button><button type="button" data-action="choose-lesson-type" data-module-id="' + m.id + '" class="p-1.5" style="color:var(--muted);border-radius:var(--r-1);"><i class="fa-solid fa-plus"></i></button></div>';
+          const header = document.createElement('div');
+          header.className = 'cm-map-module-header';
+          header.innerHTML =
+            '<div class="cm-map-module-name-row">' +
+              '<span class="text-[9px] font-bold tabular-nums flex-shrink-0" style="color:var(--muted);font-family:var(--f-mono);padding:1px 4px;background:var(--surface-3);border-radius:3px;">M' + (mi + 1) + '</span>' +
+              '<input type="text" value="' + U.esc(m.name) + '" data-module-name class="cm-map-module-name">' +
+            '</div>' +
+            '<div class="cm-map-module-meta">' +
+              '<div class="cm-map-module-progress"><div class="cm-map-module-progress-bar" style="width:' + mp.percentage + '%"></div></div>' +
+              '<span class="cm-map-module-count">' + m.lessons.length + ' lesson' + (m.lessons.length === 1 ? '' : 's') + '</span>' +
+            '</div>' +
+            '<div class="cm-map-module-actions">' +
+              '<button type="button" data-action="toggle-module-complete" data-module-id="' + m.id + '" class="p-1" style="color:var(--success);border-radius:var(--r-1);" title="Toggle module complete">' +
+                '<i class="fa-solid fa-circle-check" style="font-size:11px;"></i>' +
+              '</button>' +
+              '<button type="button" data-action="choose-lesson-type" data-module-id="' + m.id + '" class="p-1" style="color:var(--accent);border-radius:var(--r-1);" title="Add lesson">' +
+                '<i class="fa-solid fa-plus" style="font-size:11px;"></i>' +
+              '</button>' +
+              '<button type="button" data-action="delete-module" data-module-id="' + m.id + '" class="p-1" style="color:var(--danger);border-radius:var(--r-1);" title="Delete module">' +
+                '<i class="fa-solid fa-trash" style="font-size:11px;"></i>' +
+              '</button>' +
+            '</div>';
+
           column.appendChild(header);
+
           m.lessons.forEach((l) => {
-            const lt = getLessonType(l); const b = getTypeBadge(lt);
+            const lt = getLessonType(l);
+            const b = getTypeBadge(lt);
             const done = !!(p[l.id] && p[l.id].completed === true);
             const node = document.createElement('button');
-            node.type = 'button'; node.className = 'cm-map-node' + (done ? ' done' : ''); node.dataset.lessonId = l.id; node.dataset.moduleId = m.id;
-            node.innerHTML = '<span class="cm-map-node-icon">' + b.icon + '</span><span class="cm-map-node-label">' + U.esc(l.name) + '</span>';
-            node.addEventListener('click', e => { e.stopPropagation(); toggleLessonComplete(l.id); });
+            node.type = 'button';
+            node.className = 'cm-map-node' + (done ? ' done' : '');
+            node.dataset.lessonId = l.id;
+            node.dataset.moduleId = m.id;
+            node.title = l.name;
+            node.innerHTML =
+              '<span class="cm-map-node-icon">' + b.icon + '</span>' +
+              '<span class="cm-map-node-label">' + U.esc(l.name) + '</span>';
+            node.addEventListener('click', e => {
+              e.stopPropagation();
+              toggleLessonComplete(l.id);
+            });
             column.appendChild(node);
           });
+
+          // Empty module hint in map view
+          if (!m.lessons.length) {
+            const hint = document.createElement('div');
+            hint.style.cssText = 'padding:12px 8px;text-align:center;font-size:11px;color:var(--muted-2);font-family:var(--f-mono);';
+            hint.textContent = '— empty —';
+            column.appendChild(hint);
+          }
+
           container.appendChild(column);
         });
+
         modulesList.appendChild(container);
       }
+
+      function bindCourseBuilderEvents() {
+        const modulesList = $('modulesList');
+        if (modulesList && !modulesList.dataset.bound) {
+          modulesList.dataset.bound = '1';
+          modulesList.addEventListener('click', e => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            const action = btn.dataset.action;
+            const moduleId = btn.dataset.moduleId;
+            const lessonId = btn.dataset.lessonId;
+
+            // Guard against disabled buttons
+            if (btn.disabled) return;
+
+            switch (action) {
+              case 'move-module-up':      e.stopPropagation(); moveModuleBy(moduleId, -1); break;
+              case 'move-module-down':    e.stopPropagation(); moveModuleBy(moduleId, +1); break;
+              case 'toggle-module-complete': e.stopPropagation(); toggleModuleComplete(moduleId); break;
+              case 'bulk-add-lessons':    e.stopPropagation(); openBulkAddModal(moduleId); break;
+              case 'choose-lesson-type':  e.stopPropagation(); openTypeChooser(moduleId, lessonId || null); break;
+              case 'delete-module':       e.stopPropagation(); deleteModule(moduleId); break;
+
+              case 'move-lesson-up':      e.stopPropagation(); moveLessonBy(moduleId, lessonId, -1); break;
+              case 'move-lesson-down':    e.stopPropagation(); moveLessonBy(moduleId, lessonId, +1); break;
+              case 'delete-lesson':       e.stopPropagation(); deleteLesson(moduleId, lessonId); break;
+            }
+          });
+        }
+
+        // Delegate input/change for module + lesson names so `captureCourseUI` isn't the only path
+        if (modulesList && !modulesList.dataset.inputBound) {
+          modulesList.dataset.inputBound = '1';
+          modulesList.addEventListener('input', e => {
+            const t = e.target;
+            if (!t) return;
+            if (t.matches('[data-module-name]')) {
+              const wrap = t.closest('[data-module-id]');
+              const m = currentCourse?.modules.find(x => x.id === wrap?.dataset.moduleId);
+              if (m) m.name = t.value;              // no save yet — cheap, saved on blur
+            } else if (t.matches('[data-lesson-name],[data-lesson-url],[data-pdf-url]')) {
+              const wrap = t.closest('[data-lesson-id]');
+              const l = wrap && getLessonById(wrap.dataset.lessonId);
+              if (!l) return;
+              if (t.matches('[data-lesson-name]')) l.name = t.value;
+              else l.url = t.value;
+            }
+          });
+          modulesList.addEventListener('change', () => {
+            // Persist on blur/change — debounce a tiny bit
+            clearTimeout(window.__cbSaveT);
+            window.__cbSaveT = setTimeout(() => saveCourseData(), 400);
+          });
+        }
+      }
+
       function renderCourseManageStats() { if (!currentCourse) return; const s = getCourseStats(); const el = $('courseManageStats'); if (el) el.textContent = s.completed + ' / ' + s.total + ' lessons'; }
       function captureCourseUI() {
         if (!currentCourse) return;
@@ -3863,6 +4597,88 @@
         } catch (err) { showMessage('Could not fetch: ' + err.message, 'error'); }
       }
 
+      function openTypeChooser(moduleId, lessonId) {
+  window._typeChooserTarget = { moduleId, lessonId: lessonId || null };
+  const modal = $('typeChooserModal');
+  if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+}
+function closeTypeChooser() {
+  const modal = $('typeChooserModal');
+  if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+  window._typeChooserTarget = null;
+}
+function createLessonOfType(type) {
+  const tgt = window._typeChooserTarget;
+  if (!tgt || !currentCourse) { closeTypeChooser(); return; }
+  const m = currentCourse.modules.find(x => x.id === tgt.moduleId);
+  if (!m) { closeTypeChooser(); return; }
+
+  if (tgt.lessonId) {
+    // Change type of an existing lesson
+    const l = m.lessons.find(x => x.id === tgt.lessonId);
+    if (l) {
+      if (type === 'video') delete l.type;
+      else l.type = type;
+      if (!Array.isArray(l.tasks)) l.tasks = [];
+      if (!Array.isArray(l.quiz)) l.quiz = [];
+      if (l.content == null) l.content = '';
+    }
+    closeTypeChooser();
+    saveCourseData();
+    renderCourseManagement();
+    renderCourseCurriculum();
+    if (tgt.lessonId === currentCourseLessonId) {
+      const fresh = getLessonById(tgt.lessonId);
+      if (fresh) showLessonContent(fresh);
+    }
+    return;
+  }
+
+  // Create new lesson
+  const n = m.lessons.length + 1;
+  const base = { id: generateId('lesson'), name: 'Lesson ' + n, url: '' };
+  if (type === 'video') { /* default */ }
+  else if (type === 'reading') { base.type = 'reading'; base.content = ''; }
+  else if (type === 'practice') { base.type = 'practice'; base.tasks = []; }
+  else if (type === 'quiz') { base.type = 'quiz'; base.quiz = []; }
+  else if (type === 'pdf') { base.type = 'pdf'; }
+  else if (type === 'web') { base.type = 'web'; }
+  m.lessons.push(base);
+  closeTypeChooser();
+  saveCourseData();
+  renderCourseManagement();
+  renderCourseCurriculum();
+  requestAnimationFrame(() => {
+    const inp = document.querySelector('[data-lesson-id="' + base.id + '"] [data-lesson-name]');
+    if (inp) { inp.focus(); inp.select(); inp.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+  });
+}
+function importFromYouTubePlaylist() {
+  showMessage('Playlist import is not wired up yet — paste URLs in Bulk add instead.', 'info');
+  // Or wire it properly to a playlist URL + API; left as a hook.
+}
+function fetchAllDurations() {
+  const lessons = getAllLessons().filter(l => l.url && getYouTubeId(l.url));
+  if (!lessons.length) { showMessage('No YouTube lessons with URLs.', 'error'); return; }
+  showMessage('Fetching durations requires the YT Data API key — not configured.', 'info');
+}
+function fetchAllTitles() {
+  const lessons = getAllLessons().filter(l => l.url && getYouTubeId(l.url));
+  if (!lessons.length) { showMessage('No YouTube lessons with URLs.', 'error'); return; }
+  let done = 0;
+  (async () => {
+    for (const l of lessons) {
+      const title = await fetchYouTubeTitle(getYouTubeId(l.url));
+      if (title) { l.name = title; done++; }
+    }
+    saveCourseData(); renderCourseManagement(); renderCourseCurriculum();
+    showMessage('Updated ' + done + ' lesson titles.');
+  })();
+}
+function captureDeletionSnapshot(name) {
+  showMessage('Checkpoint "' + name + '" saved (not yet persisted).', 'info');
+}
+
       /* ---------- Anti-cheat ---------- */
       let acSession = { startedAt: null, blurCount: 0, focusLost: 0, pasteCount: 0, lessonId: null };
       function startAC(lid) { acSession = { startedAt: Date.now(), blurCount: 0, focusLost: 0, pasteCount: 0, lessonId: lid }; }
@@ -4084,6 +4900,7 @@
         if (action === 'focus') { toggleFocusMode(); return; }
         if (action === 'search') { openCmdk(); return; }
       }
+      
       function injectToolbarButtons() {
         const bar = document.querySelector('.study-tools'); if (!bar) return;
         if (bar.querySelector('[data-st-tools]')) return;
@@ -4096,6 +4913,7 @@
         initRecentVideosUI();
         initStreakUIEvents();
         updateStreakUI(); updateCourseSwitcher();
+        bindCourseBuilderEvents();
         renderCourseManagement(); renderCourseCurriculum();
         renderRecentVideos(); updateStorageDebug();
         try { checkShareLink(); } catch (_) {}
@@ -4173,13 +4991,13 @@
         addCourseToStore, removeCourseFromStore, switchCourse, createNewCoursePrompt, deleteCurrentCourse, renameCurrentCourse,
         resetCurrentCourse, duplicateCourse, updateCourseSwitcher, onCourseSwitcherChange, getCurrentCourse: () => currentCourse,
         getAllLessons, getCourseProgress, saveCourseProgress, removeCourseProgressForLessons, getCourseVideoId, getLessonById,
-        getLessonForCurrentVideo, getLessonSavedDuration, getModuleProgress, getCourseStats, getNextIncompleteLesson,
+        getLessonForCurrentVideo,openTypeChooser, closeTypeChooser, createLessonOfType, importFromYouTubePlaylist, fetchAllDurations, fetchAllTitles, captureDeletionSnapshot, getLessonSavedDuration, getModuleProgress, getCourseStats, getNextIncompleteLesson,
         validateCourseLessons, getCollapsedState, setCollapsedState, setModuleCollapsed, getCoursePrefs, setCoursePrefs,
         getAutoCollapsePreference, setAutoCollapsePreference, toggleCourseManagement, cmSetView,
         renderCourseManagement, renderCourseManageStats, renderCourseCurriculum, updateCourseProgressUI, updateResumeButton,
         moveModuleBy, moveLessonBy, toggleModuleComplete, addModule, deleteModule, deleteLesson,
         openBulkAddModal, closeBulkAddModal, confirmBulkAdd, fetchYouTubeTitle,
-        setLessonDueDate, clearLessonDueDate, formatDueDate: fmt => U.fmtDate(fmt), getDueBadgeClass: () => 'ok',
+        setLessonDueDate, clearLessonDueDate,
         collapseAllModules, expandAllModules, getLessonType, getTypeBadge,
         loadCourseLesson, syncCourseLessonProgress, autoAdvanceLessonFromType, showLessonContent,
         renderMarkdown, renderReadingView, markReadingComplete, renderPracticeView, updatePracticeCompletion,
@@ -4205,6 +5023,8 @@
         toggleBulkSelectionMode, bulkMarkComplete, bulkSetDue, bulkClearDue, bulkDeleteLessons, toggleBulkLesson,
         setGroupPreference,
         PS, VIDEO_PLACEHOLDER_SVG, _U: U,
+        formatDueDate: ts => { if (!ts) return ''; const d = new Date(ts); return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); },
+        getDueBadgeClass: ts => { if (!ts) return 'ok'; const diff = ts - Date.now(); if (diff < 0) return 'overdue'; if (diff < 86400000) return 'soon'; return 'ok'; },
       });
 
       // Bridge for journal
@@ -4555,5 +5375,264 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => window.DailyJournal.init());
     else window.DailyJournal.init();
   </script>
+  <script>
+(function () {
+  'use strict';
+  const CFG_KEY = 'yt_namaz_cfg_v1';
+  const TIMES_KEY = 'yt_namaz_times_v1';
+  const PRAYED_KEY = 'yt_namaz_prayed_v1';
+
+  const DEFAULTS = {
+    city: 'Karachi', country: 'Pakistan', method: 1,
+    notifyEnabled: false, minutesBefore: 10,
+  };
+
+  function loadCfg() {
+    try { return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem(CFG_KEY) || '{}')); }
+    catch (_) { return { ...DEFAULTS }; }
+  }
+  function saveCfg(c) { try { localStorage.setItem(CFG_KEY, JSON.stringify(c)); } catch (_) {} }
+
+  const PRAYERS = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+
+  const state = { cfg: loadCfg(), times: null, settingsOpen: false, cacheDate: null };
+
+  const $ = id => document.getElementById(id);
+
+  async function fetchTimes() {
+    const c = state.cfg;
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yyyy = today.getFullYear();
+    const key = yyyy + '-' + mm + '-' + dd;
+    if (state.cacheDate === key && state.times) return state.times;
+    const url = 'https://api.aladhan.com/v1/timingsByCity/' + key +
+      '?city=' + encodeURIComponent(c.city) +
+      '&country=' + encodeURIComponent(c.country) +
+      '&method=' + encodeURIComponent(c.method);
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('Aladhan HTTP ' + r.status);
+    const data = await r.json();
+    const t = data && data.data && data.data.timings;
+    if (!t) throw new Error('No timings in response');
+    state.times = t;
+    state.cacheDate = key;
+    try { localStorage.setItem(TIMES_KEY, JSON.stringify({ date: key, times: t, fetchedAt: Date.now() })); } catch (_) {}
+    return t;
+  }
+
+  function loadCachedTimes() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(TIMES_KEY) || 'null');
+      if (raw && raw.times) { state.times = raw.times; state.cacheDate = raw.date; }
+    } catch (_) {}
+  }
+
+  function parseHM(str) {
+    // "05:23 (PKT)" -> { h:5, m:23 }
+    const m = String(str || '').match(/^(\d{1,2}):(\d{2})/);
+    if (!m) return null;
+    return { h: Number(m[1]), m: Number(m[2]) };
+  }
+
+  function nextPrayer(times) {
+    const now = new Date();
+    const out = [];
+    PRAYERS.forEach(p => {
+      const hm = parseHM(times[p]);
+      if (!hm) return;
+      const d = new Date(now);
+      d.setHours(hm.h, hm.m, 0, 0);
+      out.push({ name: p, at: d });
+    });
+    if (!out.length) return null;
+    out.sort((a, b) => a.at - b.at);
+    const upcoming = out.find(x => x.at > now);
+    return upcoming || out[0];
+  }
+
+  function fmtHM(str) {
+    const hm = parseHM(str);
+    if (!hm) return str || '—';
+    return String(hm.h).padStart(2, '0') + ':' + String(hm.m).padStart(2, '0');
+  }
+
+  function renderList() {
+    const list = $('namazList');
+    if (!list) return;
+    if (!state.times) { list.innerHTML = '<p class="text-sm text-center py-4" style="color:var(--muted);">Loading…</p>'; return; }
+    const prayed = (() => { try { return JSON.parse(localStorage.getItem(PRAYED_KEY) || '{}'); } catch (_) { return {}; } })();
+    const today = new Date().toISOString().slice(0, 10);
+    const np = nextPrayer(state.times);
+    list.innerHTML = PRAYERS.map(p => {
+      const isNext = np && np.name === p;
+      const isDone = prayed[today] && prayed[today][p];
+      return '<div class="flex items-center justify-between gap-2 px-3 py-2.5" style="border:2px solid ' + (isNext ? 'var(--accent-line)' : 'var(--rule-2)') + ';background:' + (isNext ? 'var(--accent-soft)' : 'var(--surface)') + ';border-radius:var(--r-2);">'
+        + '<div class="flex items-center gap-2"><span class="text-sm font-bold" style="color:var(--ink);">' + p + '</span>'
+        + (isNext ? '<span class="text-[10px] font-bold px-1.5 py-0.5" style="background:var(--accent);color:var(--accent-ink);border-radius:var(--r-full);">NEXT</span>' : '')
+        + '</div>'
+        + '<div class="flex items-center gap-2">'
+        + '<span class="text-sm tabular-nums" style="color:var(--ink-2);font-family:var(--f-mono);">' + fmtHM(state.times[p]) + '</span>'
+        + '<button type="button" data-prayed="' + p + '" class="px-2 py-0.5 text-[11px] font-bold" style="' + (isDone ? 'background:var(--success-soft);color:var(--success);border:1px solid var(--success-line);' : 'background:var(--surface-3);color:var(--muted);border:1px solid var(--rule-2);') + 'border-radius:var(--r-full);">' + (isDone ? '✓' : 'Mark') + '</button>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+    list.querySelectorAll('[data-prayed]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const prayed2 = (() => { try { return JSON.parse(localStorage.getItem(PRAYED_KEY) || '{}'); } catch (_) { return {}; } })();
+        if (!prayed2[today]) prayed2[today] = {};
+        prayed2[today][btn.dataset.prayed] = !prayed2[today][btn.dataset.prayed];
+        localStorage.setItem(PRAYED_KEY, JSON.stringify(prayed2));
+        renderList();
+        updateNextButton();
+      });
+    });
+  }
+
+  function updateNextButton() {
+    const btn = $('namazNext');
+    if (!btn) return;
+    if (!state.times) { btn.textContent = 'Namaz'; return; }
+    const np = nextPrayer(state.times);
+    if (!np) { btn.textContent = 'Namaz'; return; }
+    const diffMin = Math.round((np.at - Date.now()) / 60000);
+    btn.textContent = np.name + ' · ' + fmtHM(state.times[np.name]);
+    btn.title = 'Next: ' + np.name + ' at ' + fmtHM(state.times[np.name]) +
+      (diffMin >= 0 ? ' (in ' + diffMin + 'm)' : '');
+  }
+
+  function renderSettings() {
+    const c = state.cfg;
+    const city = $('namazCity'), country = $('namazCountry'),
+          method = $('namazMethod'), mb = $('namazMinutesBefore'),
+          ne = $('namazNotifEnabled');
+    if (city) city.value = c.city;
+    if (country) country.value = c.country;
+    if (method) method.value = String(c.method);
+    if (mb) mb.value = String(c.minutesBefore);
+    if (ne) ne.checked = !!c.notifyEnabled;
+  }
+
+  function openSettings() {
+    state.settingsOpen = true;
+    $('namazMainView').classList.add('hidden');
+    $('namazSettingsView').classList.remove('hidden');
+    $('namazSettingsToggle').classList.add('hidden');
+    $('namazBackBtn').style.visibility = 'visible';
+    $('namazSaveBtn').style.display = '';
+    renderSettings();
+  }
+  function closeSettings() {
+    state.settingsOpen = false;
+    $('namazMainView').classList.remove('hidden');
+    $('namazSettingsView').classList.add('hidden');
+    $('namazSettingsToggle').classList.remove('hidden');
+    $('namazBackBtn').style.visibility = 'hidden';
+    $('namazSaveBtn').style.display = 'none';
+  }
+
+  async function saveSettings() {
+    const city = ($('namazCity')?.value || '').trim() || DEFAULTS.city;
+    const country = ($('namazCountry')?.value || '').trim() || DEFAULTS.country;
+    const method = Number($('namazMethod')?.value) || DEFAULTS.method;
+    const mb = Number($('namazMinutesBefore')?.value);
+    const ne = !!$('namazNotifEnabled')?.checked;
+    state.cfg = { city, country, method, minutesBefore: Number.isFinite(mb) ? mb : DEFAULTS.minutesBefore, notifyEnabled: ne };
+    saveCfg(state.cfg);
+    state.times = null; state.cacheDate = null;
+    try { await fetchTimes(); } catch (e) { showMessage && showMessage('Namaz: ' + e.message, 'error'); }
+    renderList(); updateNextButton(); closeSettings();
+    showMessage && showMessage('Namaz settings saved.');
+  }
+
+  async function open() {
+    const ov = $('namazOverlay');
+    if (!ov) return;
+    ov.classList.remove('hidden'); ov.classList.add('flex');
+    closeSettings();
+    const sub = $('namazSubtitle');
+    if (sub) sub.textContent = state.cfg.city + ', ' + state.cfg.country;
+    const dl = $('namazDateLabel');
+    if (dl) dl.textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    const hijri = $('namazHijriLabel');
+    if (hijri) hijri.textContent = '';
+    renderList();
+    try {
+      await fetchTimes();
+      renderList();
+      updateNextButton();
+      if (hijri && state.times) {
+        // try cached hijri from response if we ever store it; else leave blank
+      }
+    } catch (e) {
+      showMessage && showMessage('Namaz times: ' + e.message, 'error');
+    }
+  }
+  function close() { const ov = $('namazOverlay'); if (ov) { ov.classList.add('hidden'); ov.classList.remove('flex'); } }
+
+  function geoLocate() {
+    if (!navigator.geolocation) { showMessage && showMessage('Geolocation not supported.', 'error'); return; }
+    const status = $('namazSettingsStatus');
+    if (status) { status.textContent = 'Locating…'; status.classList.remove('hidden'); }
+    navigator.geolocation.getCurrentPosition(async pos => {
+      try {
+        const { latitude, longitude } = pos.coords;
+        const r = await fetch('https://api.aladhan.com/v1/timings/' + Math.floor(Date.now() / 1000) +
+          '?latitude=' + latitude + '&longitude=' + longitude + '&method=' + state.cfg.method);
+        const j = await r.json();
+        const tz = j?.data?.meta?.timezone;
+        if (tz) {
+          if (status) { status.textContent = 'Timezone: ' + tz + ' — enter city/country in the Aladhan timezone. Most users can just keep defaults.'; }
+        } else if (status) {
+          status.textContent = 'Location resolved. Fill city/country if needed.';
+        }
+      } catch (e) {
+        if (status) status.textContent = 'Geolocation failed: ' + e.message;
+      }
+    }, err => {
+      if (status) status.textContent = 'Geolocation error: ' + err.message;
+    });
+  }
+
+  function init() {
+    loadCachedTimes();
+    updateNextButton();
+    // Fetch times on boot so the pill is populated
+    fetchTimes().then(() => { renderList(); updateNextButton(); }).catch(() => {});
+
+    const btn = $('namazBtn');
+    if (btn && !btn.dataset.bound) {
+      btn.dataset.bound = '1';
+      btn.addEventListener('click', open);
+    }
+    const toggle = $('namazSettingsToggle');
+    if (toggle && !toggle.dataset.bound) {
+      toggle.dataset.bound = '1';
+      toggle.addEventListener('click', () => state.settingsOpen ? closeSettings() : openSettings());
+    }
+    const back = $('namazBackBtn');
+    if (back && !back.dataset.bound) { back.dataset.bound = '1'; back.addEventListener('click', closeSettings); }
+    const save = $('namazSaveBtn');
+    if (save && !save.dataset.bound) { save.dataset.bound = '1'; save.addEventListener('click', saveSettings); }
+    const geo = $('namazGeoBtn');
+    if (geo && !geo.dataset.bound) { geo.dataset.bound = '1'; geo.addEventListener('click', geoLocate); }
+
+    // Refresh button label every minute
+    setInterval(() => { if (!state.times) return; updateNextButton(); }, 60000);
+
+    // Refresh times when day changes
+    setInterval(() => {
+      const today = new Date();
+      const key = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+      if (state.cacheDate !== key) fetchTimes().then(() => { renderList(); updateNextButton(); }).catch(() => {});
+    }, 5 * 60000);
+  }
+
+  window.Namaz = { open, close, init };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
 </body>
 </html>
