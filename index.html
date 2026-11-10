@@ -790,16 +790,72 @@ html:not([data-theme="light"]) .cb-icon { border-color: var(--rule-3); }
   background: var(--surface-2);
   border: 2px solid var(--rule-2);
   border-radius: var(--r-2);
+  position: relative;
+}
+
+/* Roadmap path line running through module */
+.cm-map-column::before {
+  content: '';
+  position: absolute;
+  left: 36px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--accent) 0%, var(--teal) 50%, var(--success) 100%);
+  border-radius: 2px;
+  opacity: 0.15;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Completed modules have brighter path */
+.cm-map-column[data-complete="true"]::before {
+  opacity: 0.4;
+  background: var(--success);
 }
 
 .cm-map-module-header {
   display: flex; flex-direction: column; gap: 8px;
   padding-bottom: 8px;
   border-bottom: 2px dashed var(--rule-2);
+  position: relative;
+  z-index: 1;
+}
+
+/* Module milestone marker on the path */
+.cm-map-module-header::before {
+  content: '';
+  position: absolute;
+  left: 30px;
+  top: 18px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 3px solid var(--rule-2);
+  box-shadow: 0 0 0 3px var(--surface-2);
+  z-index: 2;
+  transition: all var(--dur-3) var(--ease);
+}
+
+/* Milestone colors based on progress */
+.cm-map-column[data-progress="0"] .cm-map-module-header::before {
+  border-color: var(--muted-2);
+  background: var(--surface-3);
+}
+.cm-map-column[data-progress="partial"] .cm-map-module-header::before {
+  border-color: var(--warn);
+  background: var(--warn-soft);
+}
+.cm-map-column[data-progress="100"] .cm-map-module-header::before {
+  border-color: var(--success);
+  background: var(--success);
+  box-shadow: 0 0 0 3px var(--surface-2), 0 0 12px var(--success-glow);
 }
 
 .cm-map-module-name-row {
   display: flex; align-items: center; gap: 6px;
+  padding-left: 52px; /* account for milestone marker */
 }
 
 .cm-map-module-name {
@@ -819,6 +875,7 @@ html:not([data-theme="light"]) .cb-icon { border-color: var(--rule-3); }
 
 .cm-map-module-meta {
   display: flex; align-items: center; gap: 8px;
+  padding-left: 52px;
 }
 
 .cm-map-module-progress {
@@ -829,9 +886,10 @@ html:not([data-theme="light"]) .cb-icon { border-color: var(--rule-3); }
 }
 .cm-map-module-progress-bar {
   height: 100%;
-  background: var(--accent);
+  background: linear-gradient(90deg, var(--accent), var(--teal));
   border-radius: var(--r-full);
   transition: width var(--dur-3) var(--ease);
+  box-shadow: 0 0 8px var(--accent-glow);
 }
 
 .cm-map-module-count {
@@ -845,12 +903,102 @@ html:not([data-theme="light"]) .cb-icon { border-color: var(--rule-3); }
   justify-content: flex-end;
 }
 
-/* Map lesson node */
+/* Map lesson node - roadmap style */
+.cm-map-node-top {
+  display: flex; align-items: center; gap: 6px;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+/* Connecting line from milestone to first lesson, and between lessons */
+.cm-map-node::before {
+  content: '';
+  position: absolute;
+  left: 36px;
+  top: -8px;
+  bottom: 50%;
+  width: 3px;
+  background: var(--rule-2);
+  border-radius: 2px;
+  z-index: 0;
+  pointer-events: none;
+  transition: background var(--dur-2);
+}
+.cm-map-node:first-child::before {
+  top: 42px; /* connect from module milestone */
+}
+.cm-map-node.done::before,
+.cm-map-node.done + .cm-map-node::before {
+  background: var(--success);
+}
+
+/* Pulsing indicator for current/next lesson */
+.cm-map-node.current::after {
+  content: '';
+  position: absolute;
+  left: 31px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--surface-2), 0 0 0 6px var(--accent-glow);
+  animation: cm-pulse 2s ease-in-out infinite;
+  z-index: 3;
+}
+@keyframes cm-pulse {
+  0%, 100% { transform: translateY(-50%) scale(1); opacity: 1; }
+  50% { transform: translateY(-50%) scale(1.3); opacity: 0.6; }
+}
+
+.cm-map-node-index { flex-shrink: 0; }
+.cm-map-lesson-name {
+  flex: 1; min-width: 0;
+  font: 500 11.5px var(--f-body);
+  color: var(--ink-2);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-1);
+  padding: 2px 6px;
+  outline: none;
+}
+.cm-map-lesson-name:focus {
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: var(--ring);
+}
+.cm-map-node-actions {
+  display: flex; align-items: center; gap: 2px;
+  margin-left: auto;
+}
+.cm-map-action {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-1);
+  transition: color var(--dur-1), background var(--dur-1), border-color var(--dur-1);
+}
+.cm-map-action:hover {
+  color: var(--ink);
+  background: var(--surface-3);
+  border-color: var(--rule-2);
+}
+.cm-map-action.is-danger:hover {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-color: var(--danger-line);
+}
+.cm-map-action:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* Node styling */
 .cm-map-node {
   display: flex; align-items: center; gap: 8px;
   width: 100%;
-  padding: 8px 10px;
-  text-align: left;
+  padding: 10px 10px 10px 52px; /* left padding for path + milestone */
   background: var(--surface);
   border: 2px solid var(--rule-2);
   border-radius: var(--r-2);
@@ -858,41 +1006,82 @@ html:not([data-theme="light"]) .cb-icon { border-color: var(--rule-3); }
   font: 500 12px var(--f-body);
   color: var(--ink-2);
   transition: transform var(--dur-1) var(--ease), border-color var(--dur-2), box-shadow var(--dur-2), background var(--dur-2);
+  position: relative;
+  z-index: 1;
 }
 .cm-map-node:hover {
   border-color: var(--accent);
   background: var(--accent-soft);
-  transform: translateY(-1px);
-  box-shadow: 2px 2px 0 rgba(20, 33, 61, .12);
+  transform: translateX(4px);
+  box-shadow: 4px 4px 0 rgba(20, 33, 61, .12);
 }
 .cm-map-node.done {
   background: var(--success-soft);
   border-color: var(--success-line);
+  color: var(--muted);
 }
-.cm-map-node.done .cm-map-node-label {
+.cm-map-node.done .cm-map-lesson-name {
   color: var(--muted);
   text-decoration: line-through;
 }
+.cm-map-node.current {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
 
+/* Node icon + label */
 .cm-map-node-icon { flex-shrink: 0; font-size: 13px; line-height: 1; }
-
 .cm-map-node-label {
   flex: 1; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-.type-choice {
-  display: flex; align-items: center; gap: 12px;
-  width: 100%; text-align: left;
-  padding: 10px 12px;
-  background: var(--surface); border: 2px solid var(--rule-2);
-  border-radius: var(--r-2); cursor: pointer;
-  transition: border-color var(--dur-2), background var(--dur-2), transform var(--dur-1);
+/* Type badge in map */
+.cm-map-node-top .type-badge {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: var(--r-1);
 }
-.type-choice:hover { border-color: var(--accent); background: var(--accent-soft); transform: translateX(2px); }
-.tc-icon { width: 38px; height: 38px; flex-shrink: 0; display: grid; place-items: center; border-radius: 10px; }
-.tc-title { font: 700 14px var(--f-body); color: var(--ink); }
-.tc-desc  { font: 500 11.5px var(--f-body); color: var(--muted); margin-top: 2px; }
+
+.type-choice {
+  font: 500 11.5px var(--f-body);
+  color: var(--ink-2);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-1);
+  padding: 2px 6px;
+  outline: none;
+}
+.cm-map-lesson-name:focus {
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: var(--ring);
+}
+.cm-map-node-actions {
+  display: flex; align-items: center; gap: 2px;
+  margin-left: auto;
+}
+.cm-map-action {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-1);
+  transition: color var(--dur-1), background var(--dur-1), border-color var(--dur-1);
+}
+.cm-map-action:hover {
+  color: var(--ink);
+  background: var(--surface-3);
+  border-color: var(--rule-2);
+}
+.cm-map-action.is-danger:hover {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-color: var(--danger-line);
+}
+.cm-map-action:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .lesson-add-today {
   flex-shrink: 0;
@@ -4033,16 +4222,38 @@ function getNextIncompleteLesson() {
         const container = document.createElement('div');
         container.className = 'cm-map-container';
 
+        // Find the next incomplete lesson globally
+        let nextLessonId = null;
+        for (const mod of currentCourse.modules) {
+          for (const les of mod.lessons) {
+            if (!(p[les.id] && p[les.id].completed === true)) {
+              nextLessonId = les.id;
+              break;
+            }
+          }
+          if (nextLessonId) break;
+        }
+
         currentCourse.modules.forEach((m, mi) => {
           const column = document.createElement('div');
           column.className = 'cm-map-column';
           column.dataset.moduleId = m.id;
+          column.dataset.type = 'module';
+          column.setAttribute('draggable', 'true');
+          column.dataset.lessonsList = '';
 
           const mp = getModuleProgress(m, p);
+          // Set progress data attributes for milestone styling
+          column.dataset.progress = mp.total === 0 ? '0' : (mp.percentage === 100 ? '100' : 'partial');
+          column.dataset.complete = mp.percentage === 100 && mp.total > 0 ? 'true' : 'false';
+
           const header = document.createElement('div');
           header.className = 'cm-map-module-header';
           header.innerHTML =
             '<div class="cm-map-module-name-row">' +
+              '<button type="button" data-drag-handle="module" class="cursor-grab active:cursor-grabbing flex-shrink-0 p-1" style="color:var(--muted);" title="Drag module">' +
+                '<i class="fa-solid fa-grip-lines" style="font-size:11px;"></i>' +
+              '</button>' +
               '<span class="text-[9px] font-bold tabular-nums flex-shrink-0" style="color:var(--muted);font-family:var(--f-mono);padding:1px 4px;background:var(--surface-3);border-radius:3px;">M' + (mi + 1) + '</span>' +
               '<input type="text" value="' + U.esc(m.name) + '" data-module-name class="cm-map-module-name">' +
             '</div>' +
@@ -4051,8 +4262,17 @@ function getNextIncompleteLesson() {
               '<span class="cm-map-module-count">' + m.lessons.length + ' lesson' + (m.lessons.length === 1 ? '' : 's') + '</span>' +
             '</div>' +
             '<div class="cm-map-module-actions">' +
+              '<button type="button" data-action="move-module-up" data-module-id="' + m.id + '" class="p-1" style="color:var(--muted);border-radius:var(--r-1);" title="Move module up"' + (mi === 0 ? ' disabled' : '') + '>' +
+                '<i class="fa-solid fa-chevron-up" style="font-size:10px;"></i>' +
+              '</button>' +
+              '<button type="button" data-action="move-module-down" data-module-id="' + m.id + '" class="p-1" style="color:var(--muted);border-radius:var(--r-1);" title="Move module down"' + (mi === currentCourse.modules.length - 1 ? ' disabled' : '') + '>' +
+                '<i class="fa-solid fa-chevron-down" style="font-size:10px;"></i>' +
+              '</button>' +
               '<button type="button" data-action="toggle-module-complete" data-module-id="' + m.id + '" class="p-1" style="color:var(--success);border-radius:var(--r-1);" title="Toggle module complete">' +
                 '<i class="fa-solid fa-circle-check" style="font-size:11px;"></i>' +
+              '</button>' +
+              '<button type="button" data-action="bulk-add-lessons" data-module-id="' + m.id + '" class="p-1" style="color:var(--muted);border-radius:var(--r-1);" title="Bulk add lessons">' +
+                '<i class="fa-solid fa-list" style="font-size:11px;"></i>' +
               '</button>' +
               '<button type="button" data-action="choose-lesson-type" data-module-id="' + m.id + '" class="p-1" style="color:var(--accent);border-radius:var(--r-1);" title="Add lesson">' +
                 '<i class="fa-solid fa-plus" style="font-size:11px;"></i>' +
@@ -4064,23 +4284,54 @@ function getNextIncompleteLesson() {
 
           column.appendChild(header);
 
-          m.lessons.forEach((l) => {
+          m.lessons.forEach((l, li) => {
             const lt = getLessonType(l);
             const b = getTypeBadge(lt);
             const done = !!(p[l.id] && p[l.id].completed === true);
-            const node = document.createElement('button');
-            node.type = 'button';
-            node.className = 'cm-map-node' + (done ? ' done' : '');
+            const isCurrent = l.id === nextLessonId && !done;
+            const node = document.createElement('div');
+            node.className = 'cm-map-node' + (done ? ' done' : '') + (isCurrent ? ' current' : '');
             node.dataset.lessonId = l.id;
             node.dataset.moduleId = m.id;
+            node.dataset.type = 'lesson';
+            node.setAttribute('draggable', 'true');
             node.title = l.name;
             node.innerHTML =
-              '<span class="cm-map-node-icon">' + b.icon + '</span>' +
-              '<span class="cm-map-node-label">' + U.esc(l.name) + '</span>';
+              '<div class="cm-map-node-top">' +
+                '<button type="button" data-drag-handle="lesson" class="cursor-grab active:cursor-grabbing flex-shrink-0 p-1" style="color:var(--muted);" title="Drag lesson">' +
+                  '<i class="fa-solid fa-grip-vertical" style="font-size:10px;"></i>' +
+                '</button>' +
+                '<span class="cm-map-node-index" style="font-size:9px;padding:1px 4px;background:var(--surface-3);border-radius:var(--r-1);min-width:18px;display:inline-flex;align-items:center;justify-content:center;">' + (li + 1) + '</span>' +
+                '<span class="type-badge" title="' + b.label + '" style="background:' + b.bg + ';color:' + b.color + ';font-size:9px;">' + b.icon + '</span>' +
+                '<input type="text" value="' + U.esc(l.name) + '" data-lesson-name="' + l.id + '" placeholder="Lesson name…" class="cm-map-lesson-name">' +
+                '<div class="cm-map-node-actions">' +
+                  '<button type="button" class="cm-map-action" data-action="choose-lesson-type" data-module-id="' + m.id + '" data-lesson-id="' + l.id + '" title="Change lesson type">' +
+                    '<i class="fa-solid fa-shapes" style="font-size:9px;"></i>' +
+                  '</button>' +
+                  '<button type="button" class="cm-map-action" data-action="move-lesson-up" data-module-id="' + m.id + '" data-lesson-id="' + l.id + '" ' + (li === 0 ? 'disabled' : '') + ' title="Move up">' +
+                    '<i class="fa-solid fa-chevron-up" style="font-size:8px;"></i>' +
+                  '</button>' +
+                  '<button type="button" class="cm-map-action" data-action="move-lesson-down" data-module-id="' + m.id + '" data-lesson-id="' + l.id + '" ' + (li === m.lessons.length - 1 ? 'disabled' : '') + ' title="Move down">' +
+                    '<i class="fa-solid fa-chevron-down" style="font-size:8px;"></i>' +
+                  '</button>' +
+                  '<button type="button" class="cm-map-action is-danger" data-action="delete-lesson" data-module-id="' + m.id + '" data-lesson-id="' + l.id + '" title="Delete lesson">' +
+                    '<i class="fa-solid fa-trash" style="font-size:9px;"></i>' +
+                  '</button>' +
+                '</div>' +
+              '</div>';
             node.addEventListener('click', e => {
+              if (e.target.closest('[data-drag-handle]') || e.target.closest('[data-action]') || e.target.closest('[data-lesson-name]')) return;
               e.stopPropagation();
               toggleLessonComplete(l.id);
             });
+            // Save lesson name on change
+            const nameInput = node.querySelector('[data-lesson-name]');
+            if (nameInput) {
+              nameInput.addEventListener('change', () => {
+                const lesson = getLessonById(l.id);
+                if (lesson) { lesson.name = nameInput.value.trim() || 'Lesson'; saveCourseData(); renderCourseManagement(); renderCourseCurriculum(); }
+              });
+            }
             column.appendChild(node);
           });
 
